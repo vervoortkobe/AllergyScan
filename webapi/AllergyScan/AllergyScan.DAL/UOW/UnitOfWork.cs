@@ -1,28 +1,37 @@
-﻿using AllergyScan.DAL.DAL;
+﻿using AllergyScan.DAL.Contexts;
 using AllergyScan.DAL.Repositories;
 
 namespace AllergyScan.DAL.UOW
 {
     public class UnitOfWork : IUnitOfWork
     {
-        private GameContext _gameContext;
-        private IPersonRepository _personRepository;
-        private IStoreRepository _storeRepository;
+        private readonly AllergyScanContext _context;
 
-        public UnitOfWork(GameContext gameContext, IPersonRepository personRepository, IStoreRepository storeRepository)
+        public UnitOfWork(
+            AllergyScanContext context,
+            IAllergyRepository allergies,
+            ILanguageRepository languages,
+            IUserSettingsRepository userSettings,
+            IScanHistoryRepository scans)
         {
-            _gameContext = gameContext;
-            _personRepository = personRepository;
-            _storeRepository = storeRepository;
+            _context = context;
+            Allergies = allergies;
+            Languages = languages;
+            UserSettings = userSettings;
+            Scans = scans;
         }
 
-        public IPersonRepository PersonRepository { get { return _personRepository; } }
+        public IAllergyRepository Allergies { get; }
 
-        public IStoreRepository StoreRepository { get { return _storeRepository; } }
+        public ILanguageRepository Languages { get; }
 
-        public int Commit()
+        public IUserSettingsRepository UserSettings { get; }
+
+        public IScanHistoryRepository Scans { get; }
+
+        public Task<int> CommitAsync(CancellationToken cancellationToken = default)
         {
-            return _gameContext.SaveChanges();
+            return _context.SaveChangesAsync(cancellationToken);
         }
     }
 }

@@ -1,9 +1,20 @@
-using Microsoft.OpenApi;
 using System.Text.Json.Serialization;
+using AllergyScan.BLL.Extensions;
+using AllergyScan.DAL.Contexts;
+using AllergyScan.DAL.Extensions;
+using AllergyScan.WebAPI.Middleware;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi;
+
 namespace AllergyScan.WebAPI
 {
     public class Startup
     {
+        private const long MaxUploadBytes = 15 * 1024 * 1024;
+
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -11,45 +22,96 @@ namespace AllergyScan.WebAPI
 
         public IConfiguration Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-
-            services.AddControllers();
-            services.AddSwaggerGen(c =>
+            services.AddControllers().AddJsonOptions(options =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "AllergyScan.WebAPI", Version = "v1" });
+                options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
             });
 
-            services.AddMvc().AddJsonOptions(opts =>
+            services.AddEndpointsApiExplorer();
+            services.AddSwaggerGen(options =>
             {
-                var enumConverter = new JsonStringEnumConverter();
-                opts.JsonSerializerOptions.Converters.Add(enumConverter);
+                options.SwaggerDoc("v1", new OpenApiInfo
+                {
+                    Title = "AllergyScan API",
+                    Version = "v1",
+                    Description = "Single-user backend for the AllergyScan MAUI app."
+                });
             });
-            services.RegisterDataAcessServices();
-            services.RegisterServices();
+
+            services.AddProblemDetails();
+            services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAll", policy => policy
+                    .AllowAnyOrigin()
+                    .AllowAnyMethod()
+                    .AllowAnyHeader());
+            });
+
+            services.Configure<FormOptions>(options => options.MultipartBodyLengthLimit = MaxUploadBytes);
+            services.Configure<KestrelServerOptions>(options => options.Limits.MaxRequestBodySize = MaxUploadBytes);
+
+            services.RegisterDataAccessServices(Configuration);
+            services.RegisterServices(Configuration);
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment environment)
         {
-            if (env.IsDevelopment())
+            EnsureDatabaseDirectory(environment);
+
+            using (var scope = app.ApplicationServices.CreateScope())
             {
-                app.UseDeveloperExceptionPage();
-                app.UseSwagger();
-                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "AllergyScan.WebAPI v1"));
+                var database = scope.ServiceProvider.GetRequiredService<AllergyScanContext>();
+                database.Database.Migrate();
             }
 
-            app.UseHttpsRedirection();
+            app.UseMiddleware<ExceptionHandlingMiddleware>();
+
+            app.UseSwagger();
+            app.UseSwaggerUI(options =>
+            {
+                options.SwaggerEndpoint("/swagger/v1/swagger.json", "AllergyScan API v1");
+            });
 
             app.UseRouting();
-
+            app.UseCors("AllowAll");
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
             });
+        }
+
+        private void EnsureDatabaseDirectory(IWebHostEnvironment environment)
+        {
+            var connectionString = Configuration.GetConnectionString("Default");
+
+            if (string.IsNullOrWhiteSpace(connectionString))
+            {
+                return;
+            }
+
+            var dataSource = new SqliteConnectionStringBuilder(connectionString).DataSource;
+
+            if (string.IsNullOrWhiteSpace(dataSource)
+                || dataSource.Equals(":memory:", StringComparison.OrdinalIgnoreCase)
+                || dataSource.StartsWith("file:", StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            var path = Path.IsPathRooted(dataSource)
+                ? dataSource
+                : Path.Combine(environment.ContentRootPath, dataSource);
+
+            var directory = Path.GetDirectoryName(path);
+
+            if (!string.IsNullOrWhiteSpace(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
         }
     }
 }

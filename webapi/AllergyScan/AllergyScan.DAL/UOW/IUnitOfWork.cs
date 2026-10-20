@@ -4,9 +4,14 @@ namespace AllergyScan.DAL.UOW
 {
     public interface IUnitOfWork
     {
-        public int Commit();
+        IAllergyRepository Allergies { get; }
 
-        public IPersonRepository PersonRepository { get; }
-        public IStoreRepository StoreRepository { get; }
+        ILanguageRepository Languages { get; }
+
+        IUserSettingsRepository UserSettings { get; }
+
+        IScanHistoryRepository Scans { get; }
+
+        Task<int> CommitAsync(CancellationToken cancellationToken = default);
     }
 }
