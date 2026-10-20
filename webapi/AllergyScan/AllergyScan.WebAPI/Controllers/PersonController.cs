@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AllergyScan.BLL.Interfaces;
+using AllergyScan.DAL;
+using Microsoft.AspNetCore.Mvc;
 
 namespace AllergyScan.WebAPI.Controllers
 {

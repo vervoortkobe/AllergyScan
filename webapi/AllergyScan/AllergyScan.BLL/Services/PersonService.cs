@@ -1,4 +1,8 @@
-﻿namespace AllergyScan.BLL.Services
+﻿using AllergyScan.BLL.Interfaces;
+using AllergyScan.DAL;
+using AllergyScan.DAL.UOW;
+
+namespace AllergyScan.BLL.Services
 {
     public class PersonService : IPerson
     {

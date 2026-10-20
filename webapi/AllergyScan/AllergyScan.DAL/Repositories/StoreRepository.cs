@@ -1,4 +1,6 @@
-﻿namespace AllergyScan.DAL.Repositories
+﻿using AllergyScan.DAL.DAL;
+
+namespace AllergyScan.DAL.Repositories
 {
     public enum Sort { Ascending = 1, Descending }
     public enum SortBy { Name = 1, Zip }

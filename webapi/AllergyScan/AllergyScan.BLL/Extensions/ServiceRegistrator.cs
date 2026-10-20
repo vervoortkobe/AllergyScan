@@ -1,5 +1,6 @@
-﻿using MyGameStore.BLL.Interfaces;
-using MyGameStore.BLL.Services;
+﻿using AllergyScan.BLL.Interfaces;
+using AllergyScan.BLL.Services;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace AllergyScan.BLL.Extensions
 {

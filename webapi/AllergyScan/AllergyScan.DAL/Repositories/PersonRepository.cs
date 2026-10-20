@@ -1,4 +1,6 @@
-﻿namespace AllergyScan.DAL.Repositories
+﻿using AllergyScan.DAL.DAL;
+
+namespace AllergyScan.DAL.Repositories
 {
     public class PersonRepository : IPersonRepository
     {

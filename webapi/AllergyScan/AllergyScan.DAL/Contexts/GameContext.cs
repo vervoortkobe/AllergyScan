@@ -1,4 +1,7 @@
-﻿namespace AllergyScan.DAL.DAL
+﻿using AllergyScan.DAL.Configurations;
+using Microsoft.EntityFrameworkCore;
+
+namespace AllergyScan.DAL.DAL
 {
     public class GameContext : DbContext
     {

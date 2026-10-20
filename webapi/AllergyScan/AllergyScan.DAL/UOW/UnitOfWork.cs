@@ -1,4 +1,7 @@
-﻿namespace AllergyScan.DAL.UOW
+﻿using AllergyScan.DAL.DAL;
+using AllergyScan.DAL.Repositories;
+
+namespace AllergyScan.DAL.UOW
 {
     public class UnitOfWork : IUnitOfWork
     {

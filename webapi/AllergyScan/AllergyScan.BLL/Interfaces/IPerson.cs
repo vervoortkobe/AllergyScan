@@ -1,4 +1,6 @@
-﻿namespace AllergyScan.BLL.Interfaces
+﻿using AllergyScan.DAL;
+
+namespace AllergyScan.BLL.Interfaces
 {
     public interface IPerson
     {

@@ -1,4 +1,7 @@
-﻿namespace AllergyScan.DAL.Configurations
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace AllergyScan.DAL.Configurations
 {
     public class PersonConfig : IEntityTypeConfiguration<Person>
     {

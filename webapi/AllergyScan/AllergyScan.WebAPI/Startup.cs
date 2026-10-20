@@ -1,3 +1,4 @@
+using Microsoft.OpenApi;
 using System.Text.Json.Serialization;
 namespace AllergyScan.WebAPI
 {

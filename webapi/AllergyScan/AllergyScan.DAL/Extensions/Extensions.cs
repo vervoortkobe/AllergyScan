@@ -1,4 +1,6 @@
-﻿namespace AllergyScan.DAL.Extensions
+﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace AllergyScan.DAL.Extensions
 {
     public static class Extensions
     {

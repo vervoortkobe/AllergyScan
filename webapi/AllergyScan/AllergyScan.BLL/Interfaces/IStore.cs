@@ -1,4 +1,7 @@
-﻿namespace AllergyScan.BLL.Interfaces
+﻿using AllergyScan.DAL;
+using AllergyScan.DAL.Repositories;
+
+namespace AllergyScan.BLL.Interfaces
 {
     public interface IStore
     {

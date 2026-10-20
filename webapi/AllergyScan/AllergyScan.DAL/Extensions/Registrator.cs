@@ -1,4 +1,9 @@
-﻿namespace AllergyScan.DAL.Extensions
+﻿using AllergyScan.DAL.DAL;
+using AllergyScan.DAL.Repositories;
+using AllergyScan.DAL.UOW;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace AllergyScan.DAL.Extensions
 {
 
     public static class Registrator
