@@ -7,13 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Configurations\" />
-    <Folder Include="Contexts\" />
-    <Folder Include="Extensions\" />
     <Folder Include="Migrations\" />
-    <Folder Include="Model\" />
-    <Folder Include="UOW\" />
     <Folder Include="Repositories\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.13" />
   </ItemGroup>
 
 </Project>

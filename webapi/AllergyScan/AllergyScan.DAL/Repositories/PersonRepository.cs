@@ -1,0 +1,36 @@
+﻿namespace AllergyScan.DAL.Repositories
+{
+    public class PersonRepository : IPersonRepository
+    {
+        private GameContext _gameContext;
+        public PersonRepository(GameContext gameContext)
+        {
+            _gameContext = gameContext;
+        }
+        public void Create(Person person)
+        {
+            _gameContext.tblPeople.Add(person);
+        }
+
+        public void Delete(int id)
+        {
+            Person person = new() { Id = id };
+            _gameContext.Remove(person);
+        }
+
+        public IEnumerable<Person> GetAll()
+        {
+            return _gameContext.tblPeople;
+        }
+
+        public Person GetById(int id)
+        {
+            return _gameContext.tblPeople.Find(id);
+        }
+
+        public void Update(Person modifiedPerson)
+        {
+            _gameContext.tblPeople.Update(modifiedPerson);
+        }
+    }
+}

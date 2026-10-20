@@ -1,0 +1,50 @@
+﻿using Microsoft.AspNetCore.Mvc;
+
+namespace AllergyScan.WebAPI.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class PersonController : ControllerBase
+    {
+        private IPerson _service;
+
+        public PersonController(IPerson context)
+        {
+            _service = context;
+        }
+
+        [HttpPost]
+
+        public IActionResult Post([FromBody] Person person)
+        {
+            _service.Add(person);
+            return Ok();
+        }
+
+        [HttpGet]
+        public IActionResult Get()
+        {
+            return Ok(_service.GetAll());
+        }
+        [HttpGet("{id}")]
+        public IActionResult Get(int id)
+        {
+            return Ok(_service.GetbyId(id));
+        }
+
+
+        [HttpPut]
+        public IActionResult Put([FromBody] Person person)
+        {
+            _service.Update(person);
+            return Ok();
+        }
+
+        [HttpDelete("{id}")]
+        public IActionResult Delete(int id)
+        {
+            _service.Delete(id);
+            return Ok();
+        }
+    }
+}
