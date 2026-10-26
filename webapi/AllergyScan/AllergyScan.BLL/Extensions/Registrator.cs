@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace AllergyScan.BLL.Extensions
 {
-    public static class ServiceRegistrator
+    public static class Registrator
     {
         public static IServiceCollection RegisterServices(this IServiceCollection services, IConfiguration configuration)
         {
