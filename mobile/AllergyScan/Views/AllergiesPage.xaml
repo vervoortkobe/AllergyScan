@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="AllergyScan.Views.AllergiesPage"
+             xmlns:models="clr-namespace:AllergyScan.Models"
+             xmlns:viewModels="clr-namespace:AllergyScan.ViewModels"
+             x:DataType="viewModels:AllergiesViewModel"
+             Title="My allergies">
+
+    <Grid Padding="16"
+          RowDefinitions="Auto,Auto,Auto,Auto,Auto,*,Auto"
+          RowSpacing="8">
+
+        <Label Text="Your allergy profile"
+               FontSize="22"
+               FontAttributes="Bold" />
+
+        <Label Grid.Row="1"
+               Text="Add every ingredient you must avoid. The scanner compares each product with this list."
+               FontSize="13"
+               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+
+        <Grid Grid.Row="2"
+              ColumnDefinitions="*,Auto"
+              ColumnSpacing="8">
+            <Entry Text="{Binding NewAllergyName}"
+                   Placeholder="For example: milk, egg, peanut"
+                   ReturnCommand="{Binding AddCommand}" />
+            <Button Grid.Column="1"
+                    Text="Add"
+                    Command="{Binding AddCommand}"
+                    IsEnabled="{Binding CanAdd}" />
+        </Grid>
+
+        <Label Grid.Row="3"
+               Text="{Binding StatusMessage}"
+               IsVisible="{Binding HasStatusMessage}"
+               FontSize="13"
+               TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray300}}" />
+
+        <Label Grid.Row="4"
+               Text="{Binding CountText}"
+               FontSize="12"
+               FontAttributes="Bold"
+               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+
+        <CollectionView Grid.Row="5"
+                        ItemsSource="{Binding Allergies}"
+                        SelectionMode="Single"
+                        SelectedItem="{Binding SelectedAllergy}">
+            <CollectionView.EmptyView>
+                <VerticalStackLayout Padding="20"
+                                     Spacing="6"
+                                     VerticalOptions="Center">
+                    <Label Text="No allergies yet"
+                           FontSize="20"
+                           FontAttributes="Bold"
+                           HorizontalOptions="Center" />
+                    <Label Text="Add your first allergy above."
+                           HorizontalOptions="Center"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+                </VerticalStackLayout>
+            </CollectionView.EmptyView>
+
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:Allergy">
+                    <Border StrokeShape="RoundRectangle 12"
+                            StrokeThickness="1"
+                            Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                            Padding="14"
+                            Margin="0,0,0,8">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <VerticalStackLayout Spacing="2">
+                                <Label Text="{Binding DisplayName}"
+                                       FontSize="16"
+                                       FontAttributes="Bold" />
+                                <Label Text="{Binding CreatedAtText}"
+                                       FontSize="11"
+                                       TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+                            </VerticalStackLayout>
+                            <Label Grid.Column="1"
+                                   Text="✓"
+                                   FontSize="18"
+                                   TextColor="{StaticResource Primary}"
+                                   VerticalOptions="Center" />
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <Button Grid.Row="6"
+                Text="Delete selected allergy"
+                Command="{Binding DeleteSelectedCommand}"
+                IsEnabled="{Binding CanDeleteSelected}"
+                BackgroundColor="{StaticResource Gray600}" />
+
+    </Grid>
+
+</ContentPage>

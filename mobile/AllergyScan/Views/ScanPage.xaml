@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="AllergyScan.Views.ScanPage"
+             xmlns:viewModels="clr-namespace:AllergyScan.ViewModels"
+             x:DataType="viewModels:ScanViewModel"
+             Title="Scan">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="16">
+
+            <Label Text="Check a product before you eat it"
+                   FontSize="26"
+                   FontAttributes="Bold"
+                   SemanticProperties.HeadingLevel="Level1" />
+
+            <Label Text="Photograph the ingredients list. AllergyScan reads it with Azure AI, translates it to your language and compares it with your allergy profile."
+                   FontSize="14"
+                   TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+
+            <Border StrokeShape="RoundRectangle 16"
+                    StrokeThickness="1"
+                    Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray900}}"
+                    HeightRequest="260">
+                <Grid>
+                    <Image Source="{Binding PreviewImage}"
+                           Aspect="AspectFill"
+                           IsVisible="{Binding HasImage}" />
+
+                    <VerticalStackLayout IsVisible="{Binding HasNoImage}"
+                                         HorizontalOptions="Center"
+                                         VerticalOptions="Center"
+                                         Spacing="8">
+                        <Label Text="📷"
+                               FontSize="42"
+                               HorizontalOptions="Center" />
+                        <Label Text="No photo yet"
+                               FontAttributes="Bold"
+                               HorizontalOptions="Center" />
+                        <Label Text="Take a photo or choose one from your gallery."
+                               FontSize="12"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}"
+                               HorizontalTextAlignment="Center" />
+                    </VerticalStackLayout>
+                </Grid>
+            </Border>
+
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                <Button Text="Take photo"
+                        Command="{Binding TakePhotoCommand}" />
+                <Button Grid.Column="1"
+                        Text="Choose photo"
+                        Command="{Binding PickPhotoCommand}" />
+            </Grid>
+
+            <Label Text="{Binding TranslationTargetText}"
+                   FontAttributes="Bold" />
+
+            <Button Text="Scan ingredients"
+                    Command="{Binding ScanCommand}"
+                    IsEnabled="{Binding CanScan}" />
+
+            <HorizontalStackLayout Spacing="10">
+                <ActivityIndicator IsRunning="{Binding IsBusy}"
+                                   IsVisible="{Binding IsBusy}"
+                                   VerticalOptions="Center" />
+                <Label Text="{Binding StatusMessage}"
+                       FontSize="13"
+                       VerticalOptions="Center"
+                       TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray300}}" />
+            </HorizontalStackLayout>
+
+            <VerticalStackLayout IsVisible="{Binding HasResult}"
+                                 Spacing="14"
+                                 Margin="0,8,0,0">
+
+                <Border BackgroundColor="{Binding FlagBackgroundColor}"
+                        StrokeThickness="0"
+                        StrokeShape="RoundRectangle 12"
+                        Padding="16">
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="{Binding FlagTitle}"
+                               FontSize="18"
+                               FontAttributes="Bold"
+                               TextColor="{Binding FlagColor}" />
+                        <Label Text="{Binding FlagDescription}"
+                               TextColor="{Binding FlagColor}" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <Label Text="Original ingredient text"
+                       FontAttributes="Bold" />
+                <Border StrokeShape="RoundRectangle 12"
+                        StrokeThickness="1"
+                        Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                        Padding="8">
+                    <Editor Text="{Binding OriginalText}"
+                            AutoSize="TextChanges"
+                            MinimumHeightRequest="100"
+                            BackgroundColor="Transparent"
+                            Placeholder="The OCR text will appear here." />
+                </Border>
+
+                <Label Text="{Binding DetectedLanguageText}"
+                       FontSize="12"
+                       IsVisible="{Binding HasTranslatedText}"
+                       TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+
+                <Label Text="Translated text"
+                       FontAttributes="Bold"
+                       IsVisible="{Binding HasTranslatedText}" />
+                <Border IsVisible="{Binding HasTranslatedText}"
+                        StrokeShape="RoundRectangle 12"
+                        StrokeThickness="1"
+                        Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                        Padding="12"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray900}}">
+                    <Label Text="{Binding TranslatedText}"
+                           FontSize="13" />
+                </Border>
+
+                <Button Text="Save to history"
+                        Command="{Binding SaveCommand}"
+                        IsEnabled="{Binding CanSave}" />
+
+                <Button Text="Scan another product"
+                        Command="{Binding ResetCommand}"
+                        BackgroundColor="Transparent"
+                        TextColor="{StaticResource Primary}" />
+            </VerticalStackLayout>
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

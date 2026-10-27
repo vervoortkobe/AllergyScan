@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="AllergyScan.Views.ScanDetailsPage"
+             xmlns:viewModels="clr-namespace:AllergyScan.ViewModels"
+             x:DataType="viewModels:ScanDetailsViewModel"
+             Title="Scan details">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="14">
+
+            <Border IsVisible="{Binding HasImage}"
+                    StrokeShape="RoundRectangle 16"
+                    StrokeThickness="0"
+                    HeightRequest="240">
+                <Image Source="{Binding ScanImage}"
+                       Aspect="AspectFill" />
+            </Border>
+
+            <Border BackgroundColor="{Binding FlagBackgroundColor}"
+                    StrokeThickness="0"
+                    StrokeShape="RoundRectangle 12"
+                    Padding="16">
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="{Binding FlagTitle}"
+                           FontSize="18"
+                           FontAttributes="Bold"
+                           TextColor="{Binding FlagColor}" />
+                    <Label Text="{Binding ScannedAtText}"
+                           FontSize="12"
+                           TextColor="{Binding FlagColor}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Label Text="Ingredient text"
+                   FontAttributes="Bold" />
+            <Border StrokeShape="RoundRectangle 12"
+                    StrokeThickness="1"
+                    Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                    Padding="8">
+                <Editor Text="{Binding EditText}"
+                        AutoSize="TextChanges"
+                        MinimumHeightRequest="120"
+                        BackgroundColor="Transparent"
+                        Placeholder="Ingredient text" />
+            </Border>
+
+            <Grid ColumnDefinitions="*,Auto">
+                <VerticalStackLayout Spacing="2">
+                    <Label Text="Allergen detected"
+                           FontAttributes="Bold" />
+                    <Label Text="Turn this on if the product contains one of your allergies."
+                           FontSize="12"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+                </VerticalStackLayout>
+                <Switch Grid.Column="1"
+                        IsToggled="{Binding IsAllergen}"
+                        VerticalOptions="Center" />
+            </Grid>
+
+            <Button Text="Save changes"
+                    Command="{Binding SaveCommand}"
+                    IsEnabled="{Binding CanSave}" />
+
+            <Button Text="Delete scan"
+                    Command="{Binding DeleteCommand}"
+                    IsEnabled="{Binding CanDelete}"
+                    BackgroundColor="{StaticResource Gray600}" />
+
+            <Button Text="Back"
+                    Command="{Binding CancelCommand}"
+                    BackgroundColor="Transparent"
+                    TextColor="{StaticResource Primary}" />
+
+            <HorizontalStackLayout Spacing="10">
+                <ActivityIndicator IsRunning="{Binding IsBusy}"
+                                   IsVisible="{Binding IsBusy}"
+                                   VerticalOptions="Center" />
+                <Label Text="{Binding StatusMessage}"
+                       IsVisible="{Binding HasStatusMessage}"
+                       FontSize="13"
+                       VerticalOptions="Center" />
+            </HorizontalStackLayout>
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

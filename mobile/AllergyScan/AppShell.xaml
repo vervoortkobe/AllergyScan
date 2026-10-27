@@ -3,12 +3,32 @@
     x:Class="AllergyScan.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:local="clr-namespace:AllergyScan"
+    xmlns:views="clr-namespace:AllergyScan.Views"
     Title="AllergyScan">
 
-    <ShellContent
-        Title="Home"
-        ContentTemplate="{DataTemplate local:MainPage}"
-        Route="MainPage" />
+    <TabBar>
+        <ShellContent
+            Title="Scan"
+            Icon="icon_scan.svg"
+            ContentTemplate="{DataTemplate views:ScanPage}"
+            Route="scan" />
 
+        <ShellContent
+            Title="History"
+            Icon="icon_history.svg"
+            ContentTemplate="{DataTemplate views:HistoryPage}"
+            Route="history" />
+
+        <ShellContent
+            Title="Allergies"
+            Icon="icon_allergy.svg"
+            ContentTemplate="{DataTemplate views:AllergiesPage}"
+            Route="allergies" />
+
+        <ShellContent
+            Title="Settings"
+            Icon="icon_settings.svg"
+            ContentTemplate="{DataTemplate views:SettingsPage}"
+            Route="settings" />
+    </TabBar>
 </Shell>

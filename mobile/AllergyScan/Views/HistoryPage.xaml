@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="AllergyScan.Views.HistoryPage"
+             xmlns:models="clr-namespace:AllergyScan.Models"
+             xmlns:viewModels="clr-namespace:AllergyScan.ViewModels"
+             x:DataType="viewModels:HistoryViewModel"
+             Title="History">
+
+    <Grid Padding="16" RowDefinitions="Auto,*,Auto,Auto" RowSpacing="10">
+
+        <Label Text="Scan History"
+               FontSize="24"
+               FontAttributes="Bold" />
+
+        <RefreshView Grid.Row="1"
+                     IsRefreshing="{Binding IsRefreshing}"
+                     Command="{Binding RefreshCommand}">
+            <CollectionView ItemsSource="{Binding Scans}"
+                            SelectionMode="Single"
+                            SelectedItem="{Binding SelectedScan}"
+                            SelectionChangedCommand="{Binding OpenScanCommand}">
+                <CollectionView.EmptyView>
+                    <VerticalStackLayout Padding="30" Spacing="8" VerticalOptions="Center">
+                        <Label Text="📋"
+                               FontSize="44"
+                               HorizontalOptions="Center" />
+                        <Label Text="No scans yet"
+                               FontSize="18"
+                               FontAttributes="Bold"
+                               HorizontalOptions="Center" />
+                        <Label Text="Take or choose a photo on the Scan tab to check ingredients."
+                               FontSize="13"
+                               HorizontalTextAlignment="Center"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+                    </VerticalStackLayout>
+                </CollectionView.EmptyView>
+
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:ScanHistory">
+                        <Border StrokeShape="RoundRectangle 12"
+                                StrokeThickness="1"
+                                Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                                Margin="0,0,0,10"
+                                Padding="12">
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                                <VerticalStackLayout Spacing="6">
+                                    <Border BackgroundColor="{Binding FlagBackgroundColor}"
+                                            StrokeThickness="0"
+                                            StrokeShape="RoundRectangle 6"
+                                            Padding="8,4"
+                                            HorizontalOptions="Start">
+                                        <Label Text="{Binding FlagTitle}"
+                                               FontSize="12"
+                                               FontAttributes="Bold"
+                                               TextColor="{Binding FlagColor}" />
+                                    </Border>
+
+                                    <Label Text="{Binding TextPreview}"
+                                           FontSize="13"
+                                           LineBreakMode="TailTruncation"
+                                           MaxLines="3" />
+
+                                    <Label Text="{Binding ScannedAtText}"
+                                           FontSize="11"
+                                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+                                </VerticalStackLayout>
+
+                                <Border Grid.Column="1"
+                                        IsVisible="{Binding HasImage}"
+                                        StrokeShape="RoundRectangle 8"
+                                        StrokeThickness="0"
+                                        WidthRequest="64"
+                                        HeightRequest="64"
+                                        VerticalOptions="Center">
+                                    <Image Source="{Binding ImageSource}"
+                                           Aspect="AspectFill" />
+                                </Border>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </RefreshView>
+
+        <Button Grid.Row="2"
+                Text="Clear All History"
+                Command="{Binding ClearHistoryCommand}"
+                IsVisible="{Binding HasScans}"
+                BackgroundColor="{StaticResource Gray600}" />
+
+        <Label Grid.Row="3"
+               Text="{Binding StatusMessage}"
+               IsVisible="{Binding HasStatusMessage}"
+               FontSize="13"
+               TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray300}}" />
+
+    </Grid>
+
+</ContentPage>

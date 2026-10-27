@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="AllergyScan.Views.SettingsPage"
+             xmlns:viewModels="clr-namespace:AllergyScan.ViewModels"
+             x:DataType="viewModels:SettingsViewModel"
+             Title="Settings">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="16">
+
+            <Label Text="Settings"
+                   FontSize="26"
+                   FontAttributes="Bold" />
+
+            <Border StrokeShape="RoundRectangle 12"
+                    StrokeThickness="1"
+                    Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                    Padding="16">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Translation language"
+                           FontSize="16"
+                           FontAttributes="Bold" />
+                    <Label Text="The app translates every ingredients list to this language before checking your allergies."
+                           FontSize="13"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+                    <Label Text="{Binding CurrentLanguageText, StringFormat='Current: {0}'}"
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource Primary}" />
+                    <Picker ItemsSource="{Binding Languages}"
+                            ItemDisplayBinding="{Binding DisplayName}"
+                            SelectedItem="{Binding SelectedLanguage}"
+                            Title="Choose a language" />
+                    <Button Text="Save language"
+                            Command="{Binding SaveCommand}"
+                            IsEnabled="{Binding CanSave}" />
+                    <Label Text="{Binding StatusMessage}"
+                           IsVisible="{Binding HasStatusMessage}"
+                           FontSize="13"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray300}}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Border StrokeShape="RoundRectangle 12"
+                    StrokeThickness="1"
+                    Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                    Padding="16">
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="How a scan works"
+                           FontSize="16"
+                           FontAttributes="Bold" />
+                    <Label Text="1. You photograph the ingredients list."
+                           FontSize="13" />
+                    <Label Text="2. Azure AI Computer Vision reads the text (OCR)."
+                           FontSize="13" />
+                    <Label Text="3. Azure AI Translator translates it to your selected language."
+                           FontSize="13" />
+                    <Label Text="4. The app compares the text with your allergy profile and shows a warning."
+                           FontSize="13" />
+                    <Label Text="5. The result and photo are saved in your history through the WebAPI."
+                           FontSize="13" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Border StrokeShape="RoundRectangle 12"
+                    StrokeThickness="1"
+                    Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                    Padding="16">
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Backend"
+                           FontSize="16"
+                           FontAttributes="Bold" />
+                    <Label Text="{Binding ApiUrl, StringFormat='API: {0}'}"
+                           FontSize="13" />
+                    <Button Text="Refresh"
+                            Command="{Binding RefreshCommand}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Border StrokeShape="RoundRectangle 12"
+                    StrokeThickness="1"
+                    Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                    Padding="16">
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Initial Setup"
+                           FontSize="16"
+                           FontAttributes="Bold" />
+                    <Label Text="Re-run the startup wizard to update your language and allergies together."
+                           FontSize="13"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+                    <Button Text="Open Setup Wizard"
+                            Command="{Binding OpenSetupCommand}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Label Text="AllergyScan · .NET MAUI · Azure AI Computer Vision + Translator"
+                   FontSize="11"
+                   HorizontalTextAlignment="Center"
+                   TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

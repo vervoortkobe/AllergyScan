@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="mobile/AllergyScan/AllergyScan.csproj" />
+  <Project Path="webapi/AllergyScan/AllergyScan.BLL/AllergyScan.BLL.csproj" />
+  <Project Path="webapi/AllergyScan/AllergyScan.DAL/AllergyScan.DAL.csproj" />
+  <Project Path="webapi/AllergyScan/AllergyScan.WebAPI/AllergyScan.WebAPI.csproj" />
+</Solution>

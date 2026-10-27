@@ -53,5 +53,14 @@
 	</dict>
 	<key>XSAppIconAssets</key>
 	<string>Assets.xcassets/appicon.appiconset</string>
+	<key>NSCameraUsageDescription</key>
+	<string>AllergyScan uses the camera to photograph ingredients lists.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>AllergyScan lets you choose a photo of an ingredients list.</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
 </dict>
 </plist>
