@@ -1,24 +1,22 @@
 using AllergyScan.Services;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace AllergyScan
 {
     public partial class AppShell : Shell
     {
-        private readonly IAllergyDataService? allergyDataService;
-        private readonly ILanguageDataService? languageDataService;
+        private readonly IAllergyDataService allergyDataService;
+        private readonly ILanguageDataService languageDataService;
+        private readonly IServiceProvider serviceProvider;
         private bool hasCheckedStartup;
 
-        public AppShell()
-        {
-            InitializeComponent();
-            RegisterRoutes();
-        }
-
         public AppShell(
+            IServiceProvider serviceProvider,
             IAllergyDataService allergyDataService,
             ILanguageDataService languageDataService)
         {
             InitializeComponent();
+            this.serviceProvider = serviceProvider;
             this.allergyDataService = allergyDataService;
             this.languageDataService = languageDataService;
             RegisterRoutes();
@@ -27,7 +25,15 @@ namespace AllergyScan
         private void RegisterRoutes()
         {
             Routing.RegisterRoute("scanDetails", typeof(Views.ScanDetailsPage));
-            Routing.RegisterRoute("setup", typeof(Views.SetupPage));
+            Routing.RegisterRoute("setup", new ServiceRouteFactory<Views.SetupPage>(serviceProvider));
+        }
+
+        private sealed class ServiceRouteFactory<TPage>(IServiceProvider serviceProvider) : RouteFactory
+            where TPage : Element
+        {
+            public override Element GetOrCreate() => serviceProvider.GetRequiredService<TPage>();
+
+            public override Element GetOrCreate(IServiceProvider services) => (services ?? serviceProvider).GetRequiredService<TPage>();
         }
 
         protected override async void OnAppearing()
@@ -52,20 +58,17 @@ namespace AllergyScan
                 return;
             }
 
-            if (allergyDataService is not null)
+            try
             {
-                try
+                var allergies = await allergyDataService.GetAllAsync();
+                if (allergies.Count == 0)
                 {
-                    var allergies = await allergyDataService.GetAllAsync();
-                    if (allergies.Count == 0)
-                    {
-                        await GoToAsync("setup");
-                    }
+                    await GoToAsync("setup");
                 }
-                catch
-                {
-                    // If offline, continue without blocking
-                }
+            }
+            catch
+            {
+                // If offline, continue without blocking
             }
         }
     }

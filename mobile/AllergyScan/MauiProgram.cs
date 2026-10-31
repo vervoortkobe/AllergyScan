@@ -17,8 +17,8 @@ namespace AllergyScan
                     fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
                 });
 
-            // Add appsettings
-            builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+            // Configuration comes from Properties/appsettings.json (embedded in the assembly).
+            builder.Services.AddSingleton<IConfiguration>(AppConfig.Configuration);
 
             // Shell
             builder.Services.AddSingleton<AppShell>();

@@ -2,7 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net10.0-windows10.0.19041.0</TargetFrameworks>
+    <TargetFrameworks>net10.0-android</TargetFrameworks>
     <OutputType>Exe</OutputType>
     <RootNamespace>AllergyScan</RootNamespace>
     <UseMaui>true</UseMaui>
@@ -18,6 +18,16 @@
 
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
     <TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">29.0</SupportedOSPlatformVersion>
+  </PropertyGroup>
+	
+  <PropertyGroup>
+    <AndroidUseOpenJDK>false</AndroidUseOpenJDK>
+    <AndroidJdkPath>C:\Program Files\Android\Android Studio\jbr</AndroidJdkPath>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net10.0-windows10.0.19041.0</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
@@ -36,10 +46,6 @@
 
     <!-- Raw Assets -->
     <MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
-
-    <None Include="appsettings.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 
   <ItemGroup>
@@ -49,6 +55,16 @@
     <PackageReference Include="Microsoft.Maui.Controls" Version="10.0.120" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+  </ItemGroup>
+
+  <!--
+    appsettings.json is git-ignored. It is embedded so it ships inside the
+    assembly on every platform (a plain content file is not packaged into the APK).
+  -->
+  <ItemGroup Condition="Exists('Properties\appsettings.json')">
+    <None Remove="Properties\appsettings.json" />
+    <EmbeddedResource Include="Properties\appsettings.json"
+                      LogicalName="AllergyScan.appsettings.json" />
   </ItemGroup>
 
 </Project>
