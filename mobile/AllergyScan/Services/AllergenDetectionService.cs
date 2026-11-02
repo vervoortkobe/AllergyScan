@@ -7,12 +7,17 @@ namespace AllergyScan.Services
 {
     public interface IAllergenDetectionService
     {
-        IReadOnlyList<Allergy> Detect(
+        IReadOnlyList<(Allergy Allergy, ScanFlag Flag)> Detect(
             string originalText,
             string translatedText,
             IEnumerable<Allergy> allergies);
 
-        IReadOnlyList<Allergy> DetectMayContain(
+        IReadOnlyList<(Allergy Allergy, ScanFlag Flag)> DetectMayContain(
+            string originalText,
+            string translatedText,
+            IEnumerable<Allergy> allergies);
+
+        IReadOnlyList<(Allergy Allergy, ScanFlag Flag)> DetectMayContainTraces(
             string originalText,
             string translatedText,
             IEnumerable<Allergy> allergies);
@@ -25,7 +30,7 @@ namespace AllergyScan.Services
     /// </summary>
     public sealed class AllergenDetectionService : IAllergenDetectionService
     {
-        public IReadOnlyList<Allergy> Detect(
+        public IReadOnlyList<(Allergy Allergy, ScanFlag Flag)> Detect(
             string originalText,
             string translatedText,
             IEnumerable<Allergy> allergies)
@@ -35,7 +40,7 @@ namespace AllergyScan.Services
                 .Distinct()
                 .ToArray();
 
-            var matches = new List<Allergy>();
+            var matches = new List<(Allergy Allergy, ScanFlag Flag)>();
             var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             foreach (var allergy in allergies)
@@ -49,39 +54,41 @@ namespace AllergyScan.Services
 
                 if (searchTerms.Any(term => haystacks.Any(text => ContainsTerm(text, term))))
                 {
-                    matches.Add(allergy);
+                    matches.Add((allergy, ScanFlag.Contains));
                 }
             }
 
             return matches;
         }
 
-        public IReadOnlyList<Allergy> DetectMayContain(
+        public IReadOnlyList<(Allergy Allergy, ScanFlag Flag)> DetectMayContain(
             string originalText,
             string translatedText,
             IEnumerable<Allergy> allergies)
+        {
+            return DetectSeverity(originalText, translatedText, allergies, ScanFlag.MayContain);
+        }
+
+        public IReadOnlyList<(Allergy Allergy, ScanFlag Flag)> DetectMayContainTraces(
+            string originalText,
+            string translatedText,
+            IEnumerable<Allergy> allergies)
+        {
+            return DetectSeverity(originalText, translatedText, allergies, ScanFlag.MayContainTraces);
+        }
+
+        private static IReadOnlyList<(Allergy Allergy, ScanFlag Flag)> DetectSeverity(
+            string originalText,
+            string translatedText,
+            IEnumerable<Allergy> allergies,
+            ScanFlag flag)
         {
             var haystacks = new[] { Normalize(originalText), Normalize(translatedText) }
                 .Where(text => text.Length > 0)
                 .Distinct()
                 .ToArray();
 
-            var mayContainPhrases = new[]
-            {
-                "may contain", "may contains", "sporen van", "sporen van",
-                "peut contenir", "peut contenir des", "kann enthalten", "kann spuren enthalten",
-                "puede contener", "puede contener trazas de", "tracce di", "puo contenere"
-            };
-
-            var hasMayContainPhrase = haystacks.Any(text =>
-                mayContainPhrases.Any(phrase => text.Contains(phrase, StringComparison.OrdinalIgnoreCase)));
-
-            if (!hasMayContainPhrase)
-            {
-                return new List<Allergy>();
-            }
-
-            var matches = new List<Allergy>();
+            var matches = new List<(Allergy Allergy, ScanFlag Flag)>();
             var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             foreach (var allergy in allergies)
@@ -91,11 +98,20 @@ namespace AllergyScan.Services
                     continue;
                 }
 
-                var searchTerms = AllergenCatalog.GetSearchTerms(allergy.Name);
+                var searchTerms = AllergenCatalog.GetSearchTerms(allergy.Name)
+                    .Concat(new[]
+                    {
+                        allergy.TranslationNl,
+                        allergy.TranslationFr,
+                        allergy.TranslationDe,
+                        allergy.TranslationEs
+                    })
+                    .Where(t => !string.IsNullOrWhiteSpace(t))
+                    .ToArray();
 
                 if (searchTerms.Any(term => haystacks.Any(text => ContainsTerm(text, term))))
                 {
-                    matches.Add(allergy);
+                    matches.Add((allergy, flag));
                 }
             }
 

@@ -7,10 +7,6 @@ namespace AllergyScan.ViewModels
 {
     public class ResultViewModel : ObservableObject
     {
-        public static ResultViewModel Current { get; private set; }
-        public static ScanFlag PendingFlag { get; set; }
-        public static string PendingAllergens { get; set; } = string.Empty;
-
         private ScanFlag flag;
         private string allergens = string.Empty;
         private bool isAllergen;
@@ -88,19 +84,7 @@ namespace AllergyScan.ViewModels
 
         public ResultViewModel(INavigationService navigationService)
         {
-            Current = this;
             BackCommand = new AsyncRelayCommand(navigationService.GoBackAsync);
-
-            // Apply any pending result set before this page was created
-            ApplyResult(PendingFlag, PendingAllergens);
-            PendingFlag = ScanFlag.NoAllergen;
-            PendingAllergens = string.Empty;
-        }
-
-        public static void SetPendingResult(ScanFlag flag, string allergens)
-        {
-            PendingFlag = flag;
-            PendingAllergens = allergens ?? string.Empty;
         }
 
         public void ApplyResult(ScanFlag flag, string allergens)
@@ -110,7 +94,7 @@ namespace AllergyScan.ViewModels
 
             switch (flag)
             {
-                case ScanFlag.AllergenDetected:
+                case ScanFlag.Contains:
                     IsAllergen = true;
                     IsMayContain = false;
                     IsSafe = false;

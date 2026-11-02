@@ -240,29 +240,33 @@ namespace AllergyScan.ViewModels
 
         public string FlagTitle => Flag switch
         {
-            ScanFlag.AllergenDetected => "⚠ Allergen detected",
+            ScanFlag.Contains => "⚠ Allergen detected",
             ScanFlag.MayContain => "⚠ May contain allergen",
+            ScanFlag.MayContainTraces => "⚠ May contain traces",
             _ => "✓ No allergens detected"
         };
 
         public Color FlagColor => Flag switch
         {
-            ScanFlag.AllergenDetected => Color.FromArgb("#B42318"),
+            ScanFlag.Contains => Color.FromArgb("#B42318"),
             ScanFlag.MayContain => Color.FromArgb("#B8860B"),
+            ScanFlag.MayContainTraces => Color.FromArgb("#F4A460"),
             _ => Color.FromArgb("#067647")
         };
 
         public Color FlagBackgroundColor => Flag switch
         {
-            ScanFlag.AllergenDetected => Color.FromArgb("#FEE4E2"),
+            ScanFlag.Contains => Color.FromArgb("#FEE4E2"),
             ScanFlag.MayContain => Color.FromArgb("#FFF8DC"),
+            ScanFlag.MayContainTraces => Color.FromArgb("#FFE4B5"),
             _ => Color.FromArgb("#D1FADF")
         };
 
         public string FlagDescription => Flag switch
         {
-            ScanFlag.AllergenDetected => $"This product contains: {DetectedAllergens}",
+            ScanFlag.Contains => $"This product contains: {DetectedAllergens}",
             ScanFlag.MayContain => $"This product may contain: {DetectedAllergens}",
+            ScanFlag.MayContainTraces => $"This product may contain traces of: {DetectedAllergens}",
             _ => "None of your allergies were found in the ingredient text."
         };
 
@@ -387,26 +391,29 @@ namespace AllergyScan.ViewModels
 
                 StatusMessage = "Comparing the ingredients with your allergy profile…";
                 var allergies = await allergyDataService.GetAllAsync();
-                var matches = detectionService.Detect(text, translatedText, allergies);
-                var mayContainMatches = detectionService.DetectMayContain(text, translatedText, allergies);
+                var contains = detectionService.Detect(text, translatedText, allergies);
+                var mayContain = detectionService.DetectMayContain(text, translatedText, allergies);
+                var mayContainTraces = detectionService.DetectMayContainTraces(text, translatedText, allergies);
 
                 OriginalText = text;
                 TranslatedText = translatedText;
                 DetectedLanguage = detected;
-                HasAllergens = matches.Count > 0;
-                HasMayContain = mayContainMatches.Count > 0 && matches.Count == 0;
-                Flag = matches.Count > 0
-                    ? ScanFlag.AllergenDetected
-                    : mayContainMatches.Count > 0
-                        ? ScanFlag.MayContain
-                        : ScanFlag.NoAllergen;
-                DetectedAllergens = string.Join(", ", matches.Concat(mayContainMatches).Select(match => match.Name));
+
+                var allMatches = contains.Concat(mayContain).Concat(mayContainTraces);
+                var allMatchesList = allMatches.ToList();
+                HasAllergens = allMatchesList.Count > 0;
+
+                var maxFlag = allMatchesList.Count > 0
+                    ? allMatchesList.Max(m => m.Flag)
+                    : ScanFlag.NoAllergen;
+
+                Flag = maxFlag;
+                DetectedAllergens = string.Join(", ", allMatchesList.Select(m => m.Allergy.Name).Distinct(StringComparer.OrdinalIgnoreCase));
                 HasResult = true;
                 StatusMessage = "Saving the scan to your history…";
                 await SaveAsync();
 
-                ResultViewModel.SetPendingResult(Flag, DetectedAllergens ?? string.Empty);
-                await Shell.Current.GoToAsync("result");
+                await Shell.Current.GoToAsync($"result?flag={(int)Flag}&allergens={Uri.EscapeDataString(DetectedAllergens ?? string.Empty)}");
             }
             catch (ApiException exception)
             {

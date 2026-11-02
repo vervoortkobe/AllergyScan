@@ -25,7 +25,8 @@ namespace AllergyScan
         private void RegisterRoutes()
         {
             Routing.RegisterRoute("scanDetails", new ServiceRouteFactory<Views.ScanDetailsPage>(serviceProvider));
-            Routing.RegisterRoute("setup", new ServiceRouteFactory<Views.SetupPage>(serviceProvider));
+            Routing.RegisterRoute("setup", new ServiceRouteFactory<Views.SetupLanguagePage>(serviceProvider));
+            Routing.RegisterRoute("setup-allergies", new ServiceRouteFactory<Views.SetupAllergiesPage>(serviceProvider));
             Routing.RegisterRoute("result", new ServiceRouteFactory<Views.ResultPage>(serviceProvider));
         }
 

@@ -21,8 +21,14 @@
 
         <ShellContent
             Title="Allergies"
-            Icon="icon_allergy.png"
+            Icon="icon_allergy.svg"
             ContentTemplate="{DataTemplate views:AllergiesPage}"
             Route="allergies" />
+
+        <ShellContent
+            Title="Settings"
+            Icon="icon_settings.svg"
+            ContentTemplate="{DataTemplate views:SettingsPage}"
+            Route="settings" />
     </TabBar>
 </Shell>

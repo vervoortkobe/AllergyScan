@@ -8,7 +8,7 @@ namespace AllergyScan.Services
     public interface IAllergyDataService
     {
         Task<List<Allergy>> GetAllAsync(CancellationToken cancellationToken = default);
-        Task<Allergy> CreateAsync(string name, CancellationToken cancellationToken = default);
+        Task<Allergy> CreateAsync(string name, string? nl = null, string? fr = null, string? de = null, string? es = null, CancellationToken cancellationToken = default);
         Task<Allergy> UpdateAsync(int id, string name, CancellationToken cancellationToken = default);
         Task<Allergy> UpdateAsync(int id, string name, ScanFlag flag, CancellationToken cancellationToken = default);
         Task DeleteAsync(int id, CancellationToken cancellationToken = default);
@@ -32,9 +32,17 @@ namespace AllergyScan.Services
             return GetAsync<List<Allergy>>("api/allergies", cancellationToken);
         }
 
-        public Task<Allergy> CreateAsync(string name, CancellationToken cancellationToken = default)
+        public Task<Allergy> CreateAsync(string name, string? nl = null, string? fr = null, string? de = null, string? es = null, CancellationToken cancellationToken = default)
         {
-            var request = new AllergyRequest { Name = name, Flag = ScanFlag.AllergenDetected };
+            var request = new AllergyRequest
+            {
+                Name = name,
+                Flag = ScanFlag.NoAllergen,
+                TranslationNl = nl,
+                TranslationFr = fr,
+                TranslationDe = de,
+                TranslationEs = es
+            };
             return PostAsync<AllergyRequest, Allergy>("api/allergies", request, cancellationToken);
         }
 
@@ -106,6 +114,10 @@ namespace AllergyScan.Services
         {
             public string Name { get; set; } = string.Empty;
             public ScanFlag? Flag { get; set; }
+            public string? TranslationNl { get; set; }
+            public string? TranslationFr { get; set; }
+            public string? TranslationDe { get; set; }
+            public string? TranslationEs { get; set; }
         }
 
         private sealed class ProblemDetails

@@ -83,35 +83,41 @@ namespace AllergyScan.Models
             }
         }
 
-        public bool IsAllergen => Flag == ScanFlag.AllergenDetected;
+        public bool IsAllergen => Flag is ScanFlag.Contains or ScanFlag.MayContain or ScanFlag.MayContainTraces;
 
-        public bool IsMayContain => Flag == ScanFlag.MayContain;
+        public bool IsMayContain => Flag is ScanFlag.MayContain or ScanFlag.MayContainTraces;
+
+        public bool IsMayContainTraces => Flag == ScanFlag.MayContainTraces;
 
         public string FlagText => Flag switch
         {
-            ScanFlag.AllergenDetected => "Allergen detected",
+            ScanFlag.Contains => "Contains allergen",
             ScanFlag.MayContain => "May contain allergen",
+            ScanFlag.MayContainTraces => "May contain traces",
             _ => "No allergens detected"
         };
 
         public string FlagTitle => Flag switch
         {
-            ScanFlag.AllergenDetected => "⚠ Allergen detected",
+            ScanFlag.Contains => "⚠ Allergen detected",
             ScanFlag.MayContain => "⚠ May contain allergen",
+            ScanFlag.MayContainTraces => "⚠ May contain traces",
             _ => "✓ No allergens detected"
         };
 
         public Color FlagColor => Flag switch
         {
-            ScanFlag.AllergenDetected => Color.FromArgb("#B42318"),
+            ScanFlag.Contains => Color.FromArgb("#B42318"),
             ScanFlag.MayContain => Color.FromArgb("#B8860B"),
+            ScanFlag.MayContainTraces => Color.FromArgb("#F4A460"),
             _ => Color.FromArgb("#067647")
         };
 
         public Color FlagBackgroundColor => Flag switch
         {
-            ScanFlag.AllergenDetected => Color.FromArgb("#FEE4E2"),
+            ScanFlag.Contains => Color.FromArgb("#FEE4E2"),
             ScanFlag.MayContain => Color.FromArgb("#FFF8DC"),
+            ScanFlag.MayContainTraces => Color.FromArgb("#FFE4B5"),
             _ => Color.FromArgb("#D1FADF")
         };
 

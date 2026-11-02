@@ -2,8 +2,6 @@ using System.Collections.ObjectModel;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using CommunityToolkit.Mvvm.Messaging;
-using AllergyScan.Messages;
 using AllergyScan.Models;
 using AllergyScan.Services;
 
@@ -12,25 +10,22 @@ namespace AllergyScan.ViewModels
     public class AllergiesViewModel : ObservableObject
     {
         private readonly IAllergyDataService allergyDataService;
-        private readonly ILanguageDataService languageDataService;
+        private readonly ITranslationService translationService;
         private readonly IDialogService dialogService;
 
         private ObservableCollection<Allergy> allergies = new();
         private Allergy? selectedAllergy;
         private string newAllergyName = string.Empty;
-        private List<Language> languages = new();
-        private Language? selectedLanguage;
-        private Language? currentLanguage;
         private bool isBusy;
         private string statusMessage = string.Empty;
 
         public AllergiesViewModel(
             IAllergyDataService allergyDataService,
-            ILanguageDataService languageDataService,
+            ITranslationService translationService,
             IDialogService dialogService)
         {
             this.allergyDataService = allergyDataService;
-            this.languageDataService = languageDataService;
+            this.translationService = translationService;
             this.dialogService = dialogService;
 
             AddCommand = new AsyncRelayCommand(AddAsync);
@@ -38,15 +33,6 @@ namespace AllergyScan.ViewModels
             AddSuggestionCommand = new RelayCommand<string>(AddSuggestion);
             RemoveAllergyCommand = new AsyncRelayCommand<Allergy>(RemoveAllergyAsync);
             ToggleFlagCommand = new AsyncRelayCommand<Allergy>(ToggleFlagAsync);
-
-            allergies.CollectionChanged += OnAllergiesChanged;
-        }
-
-        private void OnAllergiesChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
-        {
-            OnPropertyChanged(nameof(CountText));
-            OnPropertyChanged(nameof(IsEmpty));
-            OnPropertyChanged(nameof(HasAllergies));
         }
 
         public List<string> CommonSuggestions { get; } = new()
@@ -55,40 +41,6 @@ namespace AllergyScan.ViewModels
             "Tree nut", "Mustard", "Sesame", "Celery"
         };
 
-        public List<Language> Languages
-        {
-            get => languages;
-            set => SetProperty(ref languages, value);
-        }
-
-        public Language? SelectedLanguage
-        {
-            get => selectedLanguage;
-            set
-            {
-                if (SetProperty(ref selectedLanguage, value) && selectedLanguage is not null)
-                {
-                    _ = SetLanguageAsync(selectedLanguage.Code);
-                }
-            }
-        }
-
-        public Language? CurrentLanguage
-        {
-            get => currentLanguage;
-            private set
-            {
-                if (SetProperty(ref currentLanguage, value))
-                {
-                    OnPropertyChanged(nameof(CurrentLanguageText));
-                }
-            }
-        }
-
-        public string CurrentLanguageText => CurrentLanguage is null
-            ? "Not loaded"
-            : CurrentLanguage.DisplayName;
-
         public ObservableCollection<Allergy> Allergies
         {
             get => allergies;
@@ -96,10 +48,7 @@ namespace AllergyScan.ViewModels
             {
                 if (SetProperty(ref allergies, value))
                 {
-                    allergies.CollectionChanged += OnAllergiesChanged;
                     OnPropertyChanged(nameof(CountText));
-                    OnPropertyChanged(nameof(IsEmpty));
-                    OnPropertyChanged(nameof(HasAllergies));
                 }
             }
         }
@@ -163,10 +112,6 @@ namespace AllergyScan.ViewModels
         public bool CanAdd => !IsBusy && !string.IsNullOrWhiteSpace(NewAllergyName);
         public bool CanDeleteSelected => !IsBusy && SelectedAllergy is not null;
 
-        public bool IsEmpty => Allergies.Count == 0;
-
-        public bool HasAllergies => Allergies.Count > 0;
-
         public bool HasStatusMessage => !string.IsNullOrWhiteSpace(StatusMessage);
 
         public ICommand AddCommand { get; }
@@ -182,51 +127,10 @@ namespace AllergyScan.ViewModels
                 IsBusy = true;
                 StatusMessage = "Loading…";
 
-                var (allergiesResult, languagesResult, current) = await LoadAllAsync();
-
-                Allergies = new ObservableCollection<Allergy>(
-                    allergiesResult.OrderBy(a => a.Name));
-                Languages = languagesResult;
-                CurrentLanguage = current;
-                SelectedLanguage = Languages.FirstOrDefault(l =>
-                    l.Code == CurrentLanguage?.Code) ?? Languages.FirstOrDefault();
+                var result = await allergyDataService.GetAllAsync();
+                Allergies = new ObservableCollection<Allergy>(result.OrderBy(a => a.Name));
 
                 StatusMessage = string.Empty;
-            }
-            catch (Exception exception)
-            {
-                StatusMessage = exception.Message;
-            }
-            finally
-            {
-                IsBusy = false;
-            }
-        }
-
-        private async Task<(List<Allergy>, List<Language>, Language?)> LoadAllAsync()
-        {
-            var allergies = await allergyDataService.GetAllAsync();
-            var languages = await languageDataService.GetAllAsync();
-            var current = await languageDataService.GetCurrentAsync();
-            return (allergies, languages, current);
-        }
-
-        private async Task SetLanguageAsync(string code)
-        {
-            if (IsBusy || string.IsNullOrWhiteSpace(code))
-            {
-                return;
-            }
-
-            IsBusy = true;
-            try
-            {
-                var updated = await languageDataService.SetCurrentAsync(code);
-                CurrentLanguage = updated;
-                WeakReferenceMessenger.Default.Send(new LanguageChangedMessage(updated));
-                Preferences.Default.Set("LanguageConfigured", true);
-                Preferences.Default.Set("HasCompletedInitialSetup", true);
-                StatusMessage = $"Language set to {updated.Name}";
             }
             catch (Exception exception)
             {
@@ -266,7 +170,7 @@ namespace AllergyScan.ViewModels
             }
         }
 
-        private void AddSuggestion(string? suggestion)
+        public void AddSuggestion(string? suggestion)
         {
             if (string.IsNullOrWhiteSpace(suggestion) || IsBusy)
             {
@@ -287,7 +191,12 @@ namespace AllergyScan.ViewModels
             IsBusy = true;
             try
             {
-                var allergy = await allergyDataService.CreateAsync(name);
+                var nl = await TranslateAsync(name, "nl");
+                var fr = await TranslateAsync(name, "fr");
+                var de = await TranslateAsync(name, "de");
+                var es = await TranslateAsync(name, "es");
+
+                var allergy = await allergyDataService.CreateAsync(name, nl, fr, de, es);
                 Allergies.Add(allergy);
                 OnPropertyChanged(nameof(CountText));
                 StatusMessage = $"{allergy.Name} added to allergies.";
@@ -299,6 +208,19 @@ namespace AllergyScan.ViewModels
             finally
             {
                 IsBusy = false;
+            }
+        }
+
+        private async Task<string> TranslateAsync(string text, string toLanguage)
+        {
+            try
+            {
+                var result = await translationService.TranslateAsync(text, toLanguage);
+                return result.Text;
+            }
+            catch
+            {
+                return text;
             }
         }
 
@@ -354,6 +276,16 @@ namespace AllergyScan.ViewModels
             }
         }
 
+        public void ToggleFlag(Allergy allergy)
+        {
+            _ = ToggleFlagAsync(allergy);
+        }
+
+        public void RemoveAllergy(Allergy allergy)
+        {
+            _ = RemoveAllergyAsync(allergy);
+        }
+
         private async Task ToggleFlagAsync(Allergy? allergy)
         {
             if (allergy is null || IsBusy)
@@ -366,9 +298,10 @@ namespace AllergyScan.ViewModels
             {
                 var next = allergy.Flag switch
                 {
-                    ScanFlag.AllergenDetected => ScanFlag.MayContain,
-                    ScanFlag.MayContain => ScanFlag.AllergenDetected,
-                    _ => ScanFlag.AllergenDetected
+                    ScanFlag.NoAllergen => ScanFlag.Contains,
+                    ScanFlag.Contains => ScanFlag.MayContain,
+                    ScanFlag.MayContain => ScanFlag.MayContainTraces,
+                    _ => ScanFlag.NoAllergen
                 };
 
                 allergy.Flag = next;
@@ -376,8 +309,9 @@ namespace AllergyScan.ViewModels
 
                 var text = next switch
                 {
-                    ScanFlag.AllergenDetected => "contains",
+                    ScanFlag.Contains => "contains",
                     ScanFlag.MayContain => "may contain",
+                    ScanFlag.MayContainTraces => "may contain traces",
                     _ => "none"
                 };
                 StatusMessage = $"{allergy.Name} set to {text}.";
