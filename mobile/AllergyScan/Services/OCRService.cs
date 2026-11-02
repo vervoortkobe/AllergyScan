@@ -28,9 +28,10 @@ namespace AllergyScan.Services
 
             if (!response.IsSuccessStatusCode)
             {
+                var body = await response.Content.ReadAsStringAsync();
                 throw new ApiException(
                     response.StatusCode,
-                    $"OCR failed: {response.StatusCode} - {response.ReasonPhrase}");
+                    $"OCR failed: {response.StatusCode} - {response.ReasonPhrase} | {body}");
             }
 
             var operationLocation = response.Headers.GetValues("Operation-Location").FirstOrDefault();

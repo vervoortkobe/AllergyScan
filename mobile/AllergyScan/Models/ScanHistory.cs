@@ -85,17 +85,35 @@ namespace AllergyScan.Models
 
         public bool IsAllergen => Flag == ScanFlag.AllergenDetected;
 
-        public string FlagText => IsAllergen ? "Allergen detected" : "No allergens detected";
+        public bool IsMayContain => Flag == ScanFlag.MayContain;
 
-        public string FlagTitle => IsAllergen ? "⚠ Allergen detected" : "✓ No allergens detected";
+        public string FlagText => Flag switch
+        {
+            ScanFlag.AllergenDetected => "Allergen detected",
+            ScanFlag.MayContain => "May contain allergen",
+            _ => "No allergens detected"
+        };
 
-        public Color FlagColor => IsAllergen
-            ? Color.FromArgb("#B42318")
-            : Color.FromArgb("#067647");
+        public string FlagTitle => Flag switch
+        {
+            ScanFlag.AllergenDetected => "⚠ Allergen detected",
+            ScanFlag.MayContain => "⚠ May contain allergen",
+            _ => "✓ No allergens detected"
+        };
 
-        public Color FlagBackgroundColor => IsAllergen
-            ? Color.FromArgb("#FEE4E2")
-            : Color.FromArgb("#D1FADF");
+        public Color FlagColor => Flag switch
+        {
+            ScanFlag.AllergenDetected => Color.FromArgb("#B42318"),
+            ScanFlag.MayContain => Color.FromArgb("#B8860B"),
+            _ => Color.FromArgb("#067647")
+        };
+
+        public Color FlagBackgroundColor => Flag switch
+        {
+            ScanFlag.AllergenDetected => Color.FromArgb("#FEE4E2"),
+            ScanFlag.MayContain => Color.FromArgb("#FFF8DC"),
+            _ => Color.FromArgb("#D1FADF")
+        };
 
         public string ScannedAtText => ScannedAt == default
             ? string.Empty

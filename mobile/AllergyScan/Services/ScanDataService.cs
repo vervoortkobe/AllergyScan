@@ -1,6 +1,7 @@
 using AllergyScan.Models;
 using System.Net.Http.Json;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace AllergyScan.Services
 {
@@ -18,6 +19,12 @@ namespace AllergyScan.Services
         private static readonly HttpClient Client = new()
         {
             Timeout = TimeSpan.FromSeconds(60)
+        };
+
+        private static readonly JsonSerializerOptions JsonOptions = new()
+        {
+            PropertyNameCaseInsensitive = true,
+            Converters = { new JsonStringEnumConverter() }
         };
 
         public Task<PagedResult<ScanHistory>> GetHistoryAsync(int page, int pageSize, CancellationToken cancellationToken = default)
@@ -66,7 +73,7 @@ namespace AllergyScan.Services
             using var response = await Client.GetAsync(BuildUri(relativeUrl), cancellationToken);
             await EnsureSuccessAsync(response, cancellationToken);
             var json = await response.Content.ReadAsStringAsync(cancellationToken);
-            return JsonSerializer.Deserialize<T>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true })!;
+            return JsonSerializer.Deserialize<T>(json, JsonOptions)!;
         }
 
         private static async Task<TResponse> PostContentAsync<TResponse>(string relativeUrl, HttpContent content, CancellationToken cancellationToken)

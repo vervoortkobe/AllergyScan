@@ -47,15 +47,22 @@
 
             <Grid ColumnDefinitions="*,Auto">
                 <VerticalStackLayout Spacing="2">
-                    <Label Text="Allergen detected"
+                    <Label Text="Allergen status"
                            FontAttributes="Bold" />
-                    <Label Text="Turn this on if the product contains one of your allergies."
+                    <Label Text="Select whether the product contains or may contain one of your allergies."
                            FontSize="12"
                            TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
                 </VerticalStackLayout>
-                <Switch Grid.Column="1"
-                        IsToggled="{Binding IsAllergen}"
-                        VerticalOptions="Center" />
+                <Picker Grid.Column="1"
+                        Title="Status"
+                        ItemsSource="{Binding AvailableFlags}"
+                        SelectedItem="{Binding SelectedFlag, Mode=TwoWay}"
+                        VerticalOptions="Center"
+                        HorizontalOptions="End">
+                    <Picker.ItemDisplayBinding>
+                        <Binding Path="." StringFormat="{}{0}" />
+                    </Picker.ItemDisplayBinding>
+                </Picker>
             </Grid>
 
             <Button Text="Save changes"

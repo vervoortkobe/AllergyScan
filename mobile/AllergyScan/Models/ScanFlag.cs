@@ -4,6 +4,7 @@ namespace AllergyScan.Models
     public enum ScanFlag
     {
         NoAllergen = 0,
-        AllergenDetected = 1
+        AllergenDetected = 1,
+        MayContain = 2
     }
 }

@@ -22,7 +22,7 @@
                             SelectionChangedCommand="{Binding OpenScanCommand}">
                 <CollectionView.EmptyView>
                     <VerticalStackLayout Padding="30" Spacing="8" VerticalOptions="Center">
-                        <Label Text="📋"
+                        <Label Text="History"
                                FontSize="44"
                                HorizontalOptions="Center" />
                         <Label Text="No scans yet"

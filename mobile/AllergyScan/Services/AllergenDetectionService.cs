@@ -11,6 +11,11 @@ namespace AllergyScan.Services
             string originalText,
             string translatedText,
             IEnumerable<Allergy> allergies);
+
+        IReadOnlyList<Allergy> DetectMayContain(
+            string originalText,
+            string translatedText,
+            IEnumerable<Allergy> allergies);
     }
 
     /// <summary>
@@ -29,6 +34,52 @@ namespace AllergyScan.Services
                 .Where(text => text.Length > 0)
                 .Distinct()
                 .ToArray();
+
+            var matches = new List<Allergy>();
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var allergy in allergies)
+            {
+                if (string.IsNullOrWhiteSpace(allergy.Name) || !seen.Add(allergy.Name.Trim()))
+                {
+                    continue;
+                }
+
+                var searchTerms = AllergenCatalog.GetSearchTerms(allergy.Name);
+
+                if (searchTerms.Any(term => haystacks.Any(text => ContainsTerm(text, term))))
+                {
+                    matches.Add(allergy);
+                }
+            }
+
+            return matches;
+        }
+
+        public IReadOnlyList<Allergy> DetectMayContain(
+            string originalText,
+            string translatedText,
+            IEnumerable<Allergy> allergies)
+        {
+            var haystacks = new[] { Normalize(originalText), Normalize(translatedText) }
+                .Where(text => text.Length > 0)
+                .Distinct()
+                .ToArray();
+
+            var mayContainPhrases = new[]
+            {
+                "may contain", "may contains", "sporen van", "sporen van",
+                "peut contenir", "peut contenir des", "kann enthalten", "kann spuren enthalten",
+                "puede contener", "puede contener trazas de", "tracce di", "puo contenere"
+            };
+
+            var hasMayContainPhrase = haystacks.Any(text =>
+                mayContainPhrases.Any(phrase => text.Contains(phrase, StringComparison.OrdinalIgnoreCase)));
+
+            if (!hasMayContainPhrase)
+            {
+                return new List<Allergy>();
+            }
 
             var matches = new List<Allergy>();
             var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);

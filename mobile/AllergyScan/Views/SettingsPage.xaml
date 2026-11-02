@@ -45,58 +45,84 @@
                     StrokeThickness="1"
                     Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
                     Padding="16">
-                <VerticalStackLayout Spacing="8">
-                    <Label Text="How a scan works"
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="Your Allergies"
                            FontSize="16"
                            FontAttributes="Bold" />
-                    <Label Text="1. You photograph the ingredients list."
-                           FontSize="13" />
-                    <Label Text="2. Azure AI Computer Vision reads the text (OCR)."
-                           FontSize="13" />
-                    <Label Text="3. Azure AI Translator translates it to your selected language."
-                           FontSize="13" />
-                    <Label Text="4. The app compares the text with your allergy profile and shows a warning."
-                           FontSize="13" />
-                    <Label Text="5. The result and photo are saved in your history through the WebAPI."
-                           FontSize="13" />
-                </VerticalStackLayout>
-            </Border>
-
-            <Border StrokeShape="RoundRectangle 12"
-                    StrokeThickness="1"
-                    Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
-                    Padding="16">
-                <VerticalStackLayout Spacing="6">
-                    <Label Text="Backend"
-                           FontSize="16"
-                           FontAttributes="Bold" />
-                    <Label Text="{Binding ApiUrl, StringFormat='API: {0}'}"
-                           FontSize="13" />
-                    <Button Text="Refresh"
-                            Command="{Binding RefreshCommand}" />
-                </VerticalStackLayout>
-            </Border>
-
-            <Border StrokeShape="RoundRectangle 12"
-                    StrokeThickness="1"
-                    Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
-                    Padding="16">
-                <VerticalStackLayout Spacing="6">
-                    <Label Text="Initial Setup"
-                           FontSize="16"
-                           FontAttributes="Bold" />
-                    <Label Text="Re-run the startup wizard to update your language and allergies together."
-                           FontSize="13"
+                    <Label Text="Tap common allergens or type custom ingredients below so AllergyScan can alert you when dangerous ingredients are detected."
+                           FontSize="12"
                            TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
-                    <Button Text="Open Setup Wizard"
-                            Command="{Binding OpenSetupCommand}" />
+
+                    <!-- Quick suggestions -->
+                    <FlexLayout Wrap="Wrap"
+                                Direction="Row"
+                                AlignItems="Center"
+                                BindableLayout.ItemsSource="{Binding CommonSuggestions}">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="x:String">
+                                <Button Text="{Binding .}"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type viewModels:SettingsViewModel}}, Path=AddSuggestionCommand}"
+                                        CommandParameter="{Binding .}"
+                                        Margin="0,0,6,6"
+                                        Padding="10,4"
+                                        FontSize="12"
+                                        BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray800}}"
+                                        TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource Gray100}}"
+                                        CornerRadius="16" />
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </FlexLayout>
+
+                    <!-- Custom input -->
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                        <Entry Text="{Binding CustomAllergyName}"
+                               Placeholder="Add custom ingredient (e.g. walnut)"
+                               ReturnCommand="{Binding AddCustomAllergyCommand}" />
+                        <Button Grid.Column="1"
+                                Text="Add"
+                                Command="{Binding AddCustomAllergyCommand}"
+                                IsEnabled="{Binding CanAddCustom}" />
+                    </Grid>
+
+                    <!-- Added Allergies list -->
+                    <Label Text="Selected Allergens:"
+                           FontSize="13"
+                           FontAttributes="Bold"
+                           Margin="0,6,0,0" />
+
+                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding Allergies}" Spacing="6">
+                        <BindableLayout.EmptyView>
+                            <Label Text="No allergies selected yet. Tap suggestions above or type one in."
+                                   FontSize="12"
+                                   TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" />
+                        </BindableLayout.EmptyView>
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="x:String">
+                                <Border StrokeShape="RoundRectangle 8"
+                                        StrokeThickness="1"
+                                        Stroke="{StaticResource Primary}"
+                                        BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray800}}"
+                                        Padding="10,6">
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <Label Text="{Binding .}"
+                                               FontAttributes="Bold"
+                                               VerticalOptions="Center"
+                                               TextColor="{StaticResource Primary}" />
+                                        <Button Grid.Column="1"
+                                                Text="✕"
+                                                FontSize="12"
+                                                BackgroundColor="Transparent"
+                                                TextColor="{StaticResource Gray500}"
+                                                Padding="4"
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewModels:SettingsViewModel}}, Path=RemoveAllergyCommand}"
+                                                CommandParameter="{Binding .}" />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
                 </VerticalStackLayout>
             </Border>
-
-            <Label Text="AllergyScan · .NET MAUI · Azure AI Computer Vision + Translator"
-                   FontSize="11"
-                   HorizontalTextAlignment="Center"
-                   TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
 
         </VerticalStackLayout>
     </ScrollView>

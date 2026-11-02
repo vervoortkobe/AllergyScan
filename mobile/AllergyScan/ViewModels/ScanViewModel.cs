@@ -1,10 +1,11 @@
-using System.Windows.Input;
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
-using CommunityToolkit.Mvvm.Messaging;
 using AllergyScan.Messages;
 using AllergyScan.Models;
 using AllergyScan.Services;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
+using SkiaSharp;
+using System.Windows.Input;
 
 namespace AllergyScan.ViewModels
 {
@@ -29,6 +30,7 @@ namespace AllergyScan.ViewModels
         private string detectedAllergens = string.Empty;
         private bool hasResult;
         private bool hasAllergens;
+        private bool hasMayContain;
         private bool hasImage;
         private bool isBusy;
         private string statusMessage = "Take or choose a photo of an ingredients list.";
@@ -151,6 +153,21 @@ namespace AllergyScan.ViewModels
             }
         }
 
+        public bool HasMayContain
+        {
+            get => hasMayContain;
+            private set
+            {
+                if (SetProperty(ref hasMayContain, value))
+                {
+                    OnPropertyChanged(nameof(FlagTitle));
+                    OnPropertyChanged(nameof(FlagColor));
+                    OnPropertyChanged(nameof(FlagBackgroundColor));
+                    OnPropertyChanged(nameof(FlagDescription));
+                }
+            }
+        }
+
         public bool HasImage
         {
             get => hasImage;
@@ -221,21 +238,33 @@ namespace AllergyScan.ViewModels
             ? string.Empty
             : $"Detected language: {DetectedLanguage.ToUpperInvariant()}";
 
-        public string FlagTitle => HasAllergens
-            ? "⚠ Allergen detected"
-            : "✓ No allergens detected";
+        public string FlagTitle => Flag switch
+        {
+            ScanFlag.AllergenDetected => "⚠ Allergen detected",
+            ScanFlag.MayContain => "⚠ May contain allergen",
+            _ => "✓ No allergens detected"
+        };
 
-        public Color FlagColor => HasAllergens
-            ? Color.FromArgb("#B42318")
-            : Color.FromArgb("#067647");
+        public Color FlagColor => Flag switch
+        {
+            ScanFlag.AllergenDetected => Color.FromArgb("#B42318"),
+            ScanFlag.MayContain => Color.FromArgb("#B8860B"),
+            _ => Color.FromArgb("#067647")
+        };
 
-        public Color FlagBackgroundColor => HasAllergens
-            ? Color.FromArgb("#FEE4E2")
-            : Color.FromArgb("#D1FADF");
+        public Color FlagBackgroundColor => Flag switch
+        {
+            ScanFlag.AllergenDetected => Color.FromArgb("#FEE4E2"),
+            ScanFlag.MayContain => Color.FromArgb("#FFF8DC"),
+            _ => Color.FromArgb("#D1FADF")
+        };
 
-        public string FlagDescription => HasAllergens
-            ? $"This product may contain: {DetectedAllergens}"
-            : "None of your allergies were found in the ingredient text.";
+        public string FlagDescription => Flag switch
+        {
+            ScanFlag.AllergenDetected => $"This product contains: {DetectedAllergens}",
+            ScanFlag.MayContain => $"This product may contain: {DetectedAllergens}",
+            _ => "None of your allergies were found in the ingredient text."
+        };
 
         public void Receive(LanguageChangedMessage message)
         {
@@ -313,7 +342,7 @@ namespace AllergyScan.ViewModels
             imageFileName = photo.FileName;
             imageContentType = photo.ContentType;
 
-            PreviewImage = Microsoft.Maui.Controls.ImageSource.FromStream(() => new MemoryStream(photo.Data));
+            PreviewImage = ImageSource.FromStream(() => new MemoryStream(photo.Data));
             HasImage = true;
             ClearResult();
             StatusMessage = "Photo ready. Tap “Scan ingredients” to read and translate it.";
@@ -333,7 +362,8 @@ namespace AllergyScan.ViewModels
             try
             {
                 using var imageStream = new MemoryStream(imageBytes);
-                var text = (await ocrService.ReadTextAsync(imageStream)).Trim();
+                using var resized = ResizeImageIfNeeded(imageStream);
+                var text = (await ocrService.ReadTextAsync(resized)).Trim();
 
                 if (string.IsNullOrWhiteSpace(text))
                 {
@@ -346,19 +376,34 @@ namespace AllergyScan.ViewModels
 
                 StatusMessage = $"Translating to {CurrentLanguageName}…";
                 var translation = await translationService.TranslateAsync(text, CurrentLanguageCode);
+                var detected = translation.DetectedLanguage ?? CurrentLanguageCode;
+                var needsTranslation = !string.Equals(detected, CurrentLanguageCode, StringComparison.OrdinalIgnoreCase);
+
+                var translatedText = needsTranslation ? translation.Text : text;
+
+                StatusMessage = needsTranslation
+                    ? $"Translated to {CurrentLanguageName}."
+                    : $"Already in {CurrentLanguageName}, skipping translation.";
 
                 StatusMessage = "Comparing the ingredients with your allergy profile…";
                 var allergies = await allergyDataService.GetAllAsync();
-                var matches = detectionService.Detect(text, translation.Text, allergies);
+                var matches = detectionService.Detect(text, translatedText, allergies);
+                var mayContainMatches = detectionService.DetectMayContain(text, translatedText, allergies);
 
                 OriginalText = text;
-                TranslatedText = translation.Text;
-                DetectedLanguage = translation.DetectedLanguage;
+                TranslatedText = translatedText;
+                DetectedLanguage = detected;
                 HasAllergens = matches.Count > 0;
-                Flag = HasAllergens ? ScanFlag.AllergenDetected : ScanFlag.NoAllergen;
-                DetectedAllergens = string.Join(", ", matches.Select(match => match.Name));
+                HasMayContain = mayContainMatches.Count > 0 && matches.Count == 0;
+                Flag = matches.Count > 0
+                    ? ScanFlag.AllergenDetected
+                    : mayContainMatches.Count > 0
+                        ? ScanFlag.MayContain
+                        : ScanFlag.NoAllergen;
+                DetectedAllergens = string.Join(", ", matches.Concat(mayContainMatches).Select(match => match.Name));
                 HasResult = true;
-                StatusMessage = "Scan complete. Review the result and save it to your history.";
+                StatusMessage = "Saving the scan to your history…";
+                await SaveAsync();
             }
             catch (ApiException exception)
             {
@@ -430,8 +475,41 @@ namespace AllergyScan.ViewModels
             DetectedLanguage = null;
             DetectedAllergens = string.Empty;
             HasAllergens = false;
+            HasMayContain = false;
             Flag = ScanFlag.NoAllergen;
             HasResult = false;
+        }
+
+        private Stream ResizeImageIfNeeded(Stream input)
+        {
+            const long maxBytes = 3_800_000;
+            const int maxDimension = 1600;
+
+            input.Position = 0;
+            if (input.Length <= maxBytes)
+            {
+                return input;
+            }
+
+            using var original = SKBitmap.Decode(input);
+            if (original is null)
+            {
+                input.Position = 0;
+                return input;
+            }
+
+            float scale = Math.Min(1f, maxDimension / (float)Math.Max(original.Width, original.Height));
+            int newWidth = (int)(original.Width * scale);
+            int newHeight = (int)(original.Height * scale);
+
+            using var resized = original.Resize(new SKImageInfo(newWidth, newHeight), new SKSamplingOptions(SKFilterMode.Linear));
+            using var image = SKImage.FromBitmap(resized);
+            using var data = image.Encode(SKEncodedImageFormat.Jpeg, 85);
+
+            var output = new MemoryStream();
+            data.SaveTo(output);
+            output.Position = 0;
+            return output;
         }
     }
 }

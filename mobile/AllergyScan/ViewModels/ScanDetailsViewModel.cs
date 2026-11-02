@@ -16,7 +16,7 @@ namespace AllergyScan.ViewModels
 
         private ScanHistory? scan;
         private string editText = string.Empty;
-        private bool isAllergen;
+        private ScanFlag selectedFlag;
         private bool isBusy;
         private string statusMessage = string.Empty;
 
@@ -70,12 +70,12 @@ namespace AllergyScan.ViewModels
             }
         }
 
-        public bool IsAllergen
+        public ScanFlag SelectedFlag
         {
-            get => isAllergen;
+            get => selectedFlag;
             set
             {
-                if (SetProperty(ref isAllergen, value))
+                if (SetProperty(ref selectedFlag, value))
                 {
                     OnPropertyChanged(nameof(FlagTitle));
                     OnPropertyChanged(nameof(FlagColor));
@@ -123,17 +123,29 @@ namespace AllergyScan.ViewModels
 
         public bool CanDelete => !IsBusy && Scan is not null;
 
-        public string FlagTitle => IsAllergen
-            ? "⚠ Allergen detected"
-            : "✓ No allergens detected";
+        public string FlagTitle => SelectedFlag switch
+        {
+            ScanFlag.AllergenDetected => "⚠ Allergen detected",
+            ScanFlag.MayContain => "⚠ May contain allergen",
+            _ => "✓ No allergens detected"
+        };
 
-        public Color FlagColor => IsAllergen
-            ? Color.FromArgb("#B42318")
-            : Color.FromArgb("#067647");
+        public Color FlagColor => SelectedFlag switch
+        {
+            ScanFlag.AllergenDetected => Color.FromArgb("#B42318"),
+            ScanFlag.MayContain => Color.FromArgb("#B8860B"),
+            _ => Color.FromArgb("#067647")
+        };
 
-        public Color FlagBackgroundColor => IsAllergen
-            ? Color.FromArgb("#FEE4E2")
-            : Color.FromArgb("#D1FADF");
+        public Color FlagBackgroundColor => SelectedFlag switch
+        {
+            ScanFlag.AllergenDetected => Color.FromArgb("#FEE4E2"),
+            ScanFlag.MayContain => Color.FromArgb("#FFF8DC"),
+            _ => Color.FromArgb("#D1FADF")
+        };
+
+        public IReadOnlyList<ScanFlag> AvailableFlags { get; } =
+            new[] { ScanFlag.NoAllergen, ScanFlag.AllergenDetected, ScanFlag.MayContain };
 
         public ICommand SaveCommand { get; }
 
@@ -145,7 +157,7 @@ namespace AllergyScan.ViewModels
         {
             Scan = message.Value;
             EditText = message.Value.Text;
-            IsAllergen = message.Value.Flag == ScanFlag.AllergenDetected;
+            SelectedFlag = message.Value.Flag;
             StatusMessage = string.Empty;
         }
 
@@ -164,7 +176,7 @@ namespace AllergyScan.ViewModels
                 var updated = await scanDataService.UpdateAsync(
                     Scan.Id,
                     EditText.Trim(),
-                    IsAllergen ? ScanFlag.AllergenDetected : ScanFlag.NoAllergen);
+                    SelectedFlag);
 
                 Scan = updated;
                 WeakReferenceMessenger.Default.Send(new RefreshScansMessage());

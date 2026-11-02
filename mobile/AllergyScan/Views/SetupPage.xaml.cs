@@ -1,22 +1,19 @@
 using AllergyScan.ViewModels;
+using Microsoft.Maui.Controls;
 
 namespace AllergyScan.Views
 {
     public partial class SetupPage : ContentPage
     {
-        private readonly SetupViewModel viewModel;
-
-        public SetupPage(SetupViewModel viewModel)
+        public SetupPage()
         {
             InitializeComponent();
-            BindingContext = viewModel;
-            this.viewModel = viewModel;
         }
 
         protected override async void OnAppearing()
         {
             base.OnAppearing();
-            await viewModel.InitializeAsync();
+            await Shell.Current.GoToAsync("//settings");
         }
     }
 }
