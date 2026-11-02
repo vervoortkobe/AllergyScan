@@ -38,7 +38,7 @@ namespace AllergyScan.Models
             }
         }
 
-        private ScanFlag flag = ScanFlag.NoAllergen;
+        private ScanFlag flag = ScanFlag.AllergenDetected;
 
         public ScanFlag Flag
         {
@@ -59,7 +59,7 @@ namespace AllergyScan.Models
         {
             ScanFlag.AllergenDetected => Color.FromArgb("#B42318"),
             ScanFlag.MayContain => Color.FromArgb("#B8860B"),
-            _ => Color.FromArgb("#067647")
+            _ => Color.FromArgb("#6E6E6E")
         };
 
         public string FlagBadge => Flag switch
@@ -73,14 +73,14 @@ namespace AllergyScan.Models
         {
             ScanFlag.AllergenDetected => Color.FromArgb("#FEE4E2"),
             ScanFlag.MayContain => Color.FromArgb("#FFF8DC"),
-            _ => Color.FromArgb("#D1FADF")
+            _ => Color.FromArgb("#F2F2F2")
         };
 
         public Color FlagStrokeColor => Flag switch
         {
             ScanFlag.AllergenDetected => Color.FromArgb("#B42318"),
             ScanFlag.MayContain => Color.FromArgb("#B8860B"),
-            _ => Color.FromArgb("#067647")
+            _ => Color.FromArgb("#ACACAC")
         };
 
         public string DisplayName => string.IsNullOrWhiteSpace(Name)

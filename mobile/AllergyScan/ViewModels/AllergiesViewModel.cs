@@ -366,9 +366,9 @@ namespace AllergyScan.ViewModels
             {
                 var next = allergy.Flag switch
                 {
-                    ScanFlag.NoAllergen => ScanFlag.AllergenDetected,
                     ScanFlag.AllergenDetected => ScanFlag.MayContain,
-                    _ => ScanFlag.NoAllergen
+                    ScanFlag.MayContain => ScanFlag.AllergenDetected,
+                    _ => ScanFlag.AllergenDetected
                 };
 
                 allergy.Flag = next;

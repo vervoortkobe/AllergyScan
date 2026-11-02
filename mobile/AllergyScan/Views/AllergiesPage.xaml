@@ -41,7 +41,7 @@
                 </VerticalStackLayout>
             </Border>
 
-            <!-- Common suggestions as bubbles -->
+            <!-- Common suggestions as green bubbles -->
             <Label Text="Common allergens"
                    FontSize="15"
                    FontAttributes="Bold"
@@ -58,8 +58,8 @@
                                 Margin="0,0,6,6"
                                 Padding="10,6"
                                 FontSize="12"
-                                BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray800}}"
-                                TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource Gray100}}"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
+                                TextColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource PrimaryDarkText}}"
                                 CornerRadius="16" />
                     </DataTemplate>
                 </BindableLayout.ItemTemplate>
@@ -87,7 +87,7 @@
                    FontAttributes="Bold"
                    TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
 
-            <Label Text="Tap an allergy to cycle its status: contains → may contain → none."
+            <Label Text="Tap an allergy to cycle its status: contains → may contain."
                    IsVisible="{Binding HasAllergies}"
                    FontSize="12"
                    TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />

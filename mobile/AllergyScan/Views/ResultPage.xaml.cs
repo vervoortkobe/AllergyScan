@@ -71,14 +71,15 @@ namespace AllergyScan.Views
                 Padding = 30,
                 Spacing = 20,
                 VerticalOptions = LayoutOptions.Center,
-                HorizontalOptions = LayoutOptions.FillAndExpand,
                 Children = { icon, title, subtitle, border, back }
             };
 
             Content = new Grid
             {
-                VerticalOptions = LayoutOptions.FillAndExpand,
-                HorizontalOptions = LayoutOptions.FillAndExpand,
+                RowDefinitions = new RowDefinitionCollection { new RowDefinition(GridLength.Star) },
+                ColumnDefinitions = new ColumnDefinitionCollection { new ColumnDefinition(GridLength.Star) },
+                VerticalOptions = LayoutOptions.Fill,
+                HorizontalOptions = LayoutOptions.Fill,
                 Children = { content }
             };
             Content.SetBinding(Grid.BackgroundColorProperty, nameof(ResultViewModel.ResultBgColor));

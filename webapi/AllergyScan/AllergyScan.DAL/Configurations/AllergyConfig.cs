@@ -14,6 +14,11 @@ namespace AllergyScan.DAL.Configurations
                 .HasMaxLength(100)
                 .UseCollation("NOCASE");
 
+            builder.Property(a => a.Flag)
+                .IsRequired()
+                .HasDefaultValue(ScanFlag.AllergenDetected)
+                .HasSentinel(ScanFlag.AllergenDetected);
+
             builder.HasIndex(a => a.Name).IsUnique();
         }
     }

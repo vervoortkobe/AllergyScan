@@ -38,6 +38,7 @@ namespace AllergyScan.BLL.Services
             var allergy = new Allergy
             {
                 Name = name,
+                Flag = request.Flag,
                 CreatedAt = DateTime.UtcNow
             };
 
@@ -56,6 +57,12 @@ namespace AllergyScan.BLL.Services
             await EnsureNameIsUniqueAsync(name, id, cancellationToken);
 
             allergy.Name = name;
+
+            if (request.Flag is not null)
+            {
+                allergy.Flag = request.Flag.Value;
+            }
+
             _unitOfWork.Allergies.Update(allergy);
             await _unitOfWork.CommitAsync(cancellationToken);
 
@@ -97,7 +104,7 @@ namespace AllergyScan.BLL.Services
         {
             // SQLite stores DateTime as text and loses the Kind, so restore UTC for the API.
             var createdAt = DateTime.SpecifyKind(allergy.CreatedAt, DateTimeKind.Utc);
-            return new AllergyDTO(allergy.Id, allergy.Name, createdAt);
+            return new AllergyDTO(allergy.Id, allergy.Name, createdAt, allergy.Flag);
         }
     }
 }

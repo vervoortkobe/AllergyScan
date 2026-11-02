@@ -84,7 +84,7 @@
         </RefreshView>
 
         <Button Grid.Row="2"
-                Text="Clear All History"
+                Text="Clear history"
                 Command="{Binding ClearHistoryCommand}"
                 IsVisible="{Binding HasScans}"
                 BackgroundColor="{StaticResource Gray600}" />

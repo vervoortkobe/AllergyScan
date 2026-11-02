@@ -1,6 +1,7 @@
 using AllergyScan.Models;
 using System.Net.Http.Json;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace AllergyScan.Services
 {
@@ -20,6 +21,12 @@ namespace AllergyScan.Services
             Timeout = TimeSpan.FromSeconds(60)
         };
 
+        private static readonly JsonSerializerOptions JsonOptions = new()
+        {
+            PropertyNameCaseInsensitive = true,
+            Converters = { new JsonStringEnumConverter() }
+        };
+
         public Task<List<Allergy>> GetAllAsync(CancellationToken cancellationToken = default)
         {
             return GetAsync<List<Allergy>>("api/allergies", cancellationToken);
@@ -27,7 +34,7 @@ namespace AllergyScan.Services
 
         public Task<Allergy> CreateAsync(string name, CancellationToken cancellationToken = default)
         {
-            var request = new AllergyRequest { Name = name };
+            var request = new AllergyRequest { Name = name, Flag = ScanFlag.AllergenDetected };
             return PostAsync<AllergyRequest, Allergy>("api/allergies", request, cancellationToken);
         }
 
@@ -53,25 +60,25 @@ namespace AllergyScan.Services
             using var response = await Client.GetAsync(BuildUri(relativeUrl), cancellationToken);
             await EnsureSuccessAsync(response, cancellationToken);
             var json = await response.Content.ReadAsStringAsync(cancellationToken);
-            return JsonSerializer.Deserialize<T>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true })!;
+            return JsonSerializer.Deserialize<T>(json, JsonOptions)!;
         }
 
         private static async Task<TResponse> PostAsync<TRequest, TResponse>(string relativeUrl, TRequest request, CancellationToken cancellationToken)
         {
-            using var content = new StringContent(JsonSerializer.Serialize(request), System.Text.Encoding.UTF8, "application/json");
+            using var content = new StringContent(JsonSerializer.Serialize(request, JsonOptions), System.Text.Encoding.UTF8, "application/json");
             using var response = await Client.PostAsync(BuildUri(relativeUrl), content, cancellationToken);
             await EnsureSuccessAsync(response, cancellationToken);
             var json = await response.Content.ReadAsStringAsync(cancellationToken);
-            return JsonSerializer.Deserialize<TResponse>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true })!;
+            return JsonSerializer.Deserialize<TResponse>(json, JsonOptions)!;
         }
 
         private static async Task<TResponse> PutAsync<TRequest, TResponse>(string relativeUrl, TRequest request, CancellationToken cancellationToken)
         {
-            using var content = new StringContent(JsonSerializer.Serialize(request), System.Text.Encoding.UTF8, "application/json");
+            using var content = new StringContent(JsonSerializer.Serialize(request, JsonOptions), System.Text.Encoding.UTF8, "application/json");
             using var response = await Client.PutAsync(BuildUri(relativeUrl), content, cancellationToken);
             await EnsureSuccessAsync(response, cancellationToken);
             var json = await response.Content.ReadAsStringAsync(cancellationToken);
-            return JsonSerializer.Deserialize<TResponse>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true })!;
+            return JsonSerializer.Deserialize<TResponse>(json, JsonOptions)!;
         }
 
         private static async Task DeleteRequestAsync(string relativeUrl, CancellationToken cancellationToken)
@@ -98,7 +105,7 @@ namespace AllergyScan.Services
         private sealed class AllergyRequest
         {
             public string Name { get; set; } = string.Empty;
-            public ScanFlag Flag { get; set; } = ScanFlag.NoAllergen;
+            public ScanFlag? Flag { get; set; }
         }
 
         private sealed class ProblemDetails

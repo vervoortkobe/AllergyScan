@@ -24,7 +24,7 @@ Azure Translator -> translated text
         |
 allergen check against the profile ->
         |
-   flag (NoAllergen | AllergenDetected)
+   flag (NoAllergen | AllergenDetected | MayContain)
         |
         +--- POST /api/scans ---------------> scans + image
         +--- GET/PUT /api/allergies --------> allergy profile

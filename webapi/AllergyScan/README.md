@@ -81,12 +81,13 @@ All request/response bodies are JSON unless noted. Enums are serialized as strin
 | --- | --- | --- |
 | `GET` | `/api/allergies` | List all allergies |
 | `GET` | `/api/allergies/{id}` | Get one allergy |
-| `POST` | `/api/allergies` | Add an allergy, body `{ "name": "milk" }` |
-| `PUT` | `/api/allergies/{id}` | Rename an allergy, body `{ "name": "milk" }` |
+| `POST` | `/api/allergies` | Add an allergy, body `{ "name": "milk", "flag": "AllergenDetected" }` |
+| `PUT` | `/api/allergies/{id}` | Rename an allergy or update its flag, body `{ "name": "milk", "flag": "MayContain" }` |
 | `DELETE` | `/api/allergies/{id}` | Delete an allergy |
 
 Names are unique (case insensitive), trimmed and limited to 100 characters.
-A duplicate name returns `409 Conflict`.
+A duplicate name returns `409 Conflict`. `flag` is `AllergenDetected` (contains)
+or `MayContain`; new allergies default to `AllergenDetected`.
 
 ### Language
 
@@ -121,7 +122,7 @@ The app uses this language as the target language for its Azure translation.
 | --- | --- | --- |
 | `image` | no | Product photo (PNG, JPEG, WEBP, BMP, TIFF, GIF; max 10 MB) |
 | `text` | yes | Ingredient text produced by the app's OCR provider |
-| `flag` | yes | `NoAllergen` or `AllergenDetected` |
+| `flag` | yes | `NoAllergen`, `AllergenDetected` or `MayContain` |
 
 The response:
 
@@ -136,7 +137,7 @@ The response:
 }
 ```
 
-`flag` is `NoAllergen` or `AllergenDetected`. When the scan contains an image,
+`flag` is `NoAllergen`, `AllergenDetected` or `MayContain`. When the scan contains an image,
 `imageUrl` points to `/api/scans/{id}/image` and `hasImage` is `true`.
 
 `PUT /api/scans/{id}` body:
