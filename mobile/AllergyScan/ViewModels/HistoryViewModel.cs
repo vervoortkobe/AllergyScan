@@ -186,8 +186,7 @@ namespace AllergyScan.ViewModels
             var scan = SelectedScan;
             SelectedScan = null;
 
-            WeakReferenceMessenger.Default.Send(new ScanSelectedMessage(scan));
-            await navigationService.NavigateToScanDetailsAsync();
+            await navigationService.NavigateToScanDetailsAsync(scan.Id);
         }
 
         private async Task ClearHistoryAsync()

@@ -9,26 +9,20 @@
     <TabBar>
         <ShellContent
             Title="Scan"
-            Icon="icon_scan.svg"
+            Icon="icon_scan.png"
             ContentTemplate="{DataTemplate views:ScanPage}"
             Route="scan" />
 
         <ShellContent
             Title="History"
-            Icon="icon_history.svg"
+            Icon="icon_history.png"
             ContentTemplate="{DataTemplate views:HistoryPage}"
             Route="history" />
 
         <ShellContent
             Title="Allergies"
-            Icon="icon_allergy.svg"
+            Icon="icon_allergy.png"
             ContentTemplate="{DataTemplate views:AllergiesPage}"
             Route="allergies" />
-
-        <ShellContent
-            Title="Settings"
-            Icon="icon_settings.svg"
-            ContentTemplate="{DataTemplate views:SettingsPage}"
-            Route="settings" />
     </TabBar>
 </Shell>

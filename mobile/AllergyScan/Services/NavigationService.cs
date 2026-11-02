@@ -8,7 +8,7 @@ namespace AllergyScan.Services
     {
         Task NavigateToAsync(string route);
         Task NavigateToAsync(string route, IDictionary<string, object> parameters);
-        Task NavigateToScanDetailsAsync();
+        Task NavigateToScanDetailsAsync(int scanId);
         Task GoBackAsync();
     }
 
@@ -30,11 +30,11 @@ namespace AllergyScan.Services
             }
         }
 
-        public async Task NavigateToScanDetailsAsync()
+        public async Task NavigateToScanDetailsAsync(int scanId)
         {
             if (Shell.Current is not null)
             {
-                await Shell.Current.GoToAsync("scanDetails");
+                await Shell.Current.GoToAsync($"scanDetails?id={scanId}");
             }
         }
 

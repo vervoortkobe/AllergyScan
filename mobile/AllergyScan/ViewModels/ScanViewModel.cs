@@ -404,6 +404,9 @@ namespace AllergyScan.ViewModels
                 HasResult = true;
                 StatusMessage = "Saving the scan to your history…";
                 await SaveAsync();
+
+                ResultViewModel.SetPendingResult(Flag, DetectedAllergens ?? string.Empty);
+                await Shell.Current.GoToAsync("result");
             }
             catch (ApiException exception)
             {

@@ -37,18 +37,18 @@ namespace AllergyScan
             // View Models
             builder.Services.AddTransient<AllergiesViewModel>();
             builder.Services.AddTransient<HistoryViewModel>();
-            builder.Services.AddTransient<SettingsViewModel>();
             builder.Services.AddTransient<ScanViewModel>();
             builder.Services.AddTransient<ScanDetailsViewModel>();
             builder.Services.AddTransient<SetupViewModel>();
+            builder.Services.AddTransient<ResultViewModel>();
 
             // Pages
             builder.Services.AddTransient<Views.AllergiesPage>();
             builder.Services.AddTransient<Views.HistoryPage>();
-            builder.Services.AddTransient<Views.SettingsPage>();
             builder.Services.AddTransient<Views.ScanPage>();
             builder.Services.AddTransient<Views.ScanDetailsPage>();
             builder.Services.AddTransient<Views.SetupPage>();
+            builder.Services.AddTransient<Views.ResultPage>();
 
             return builder.Build();
         }

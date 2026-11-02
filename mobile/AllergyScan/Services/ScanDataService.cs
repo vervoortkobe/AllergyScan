@@ -8,6 +8,7 @@ namespace AllergyScan.Services
     public interface IScanDataService
     {
         Task<PagedResult<ScanHistory>> GetHistoryAsync(int page, int pageSize, CancellationToken cancellationToken = default);
+        Task<ScanHistory> GetByIdAsync(int id, CancellationToken cancellationToken = default);
         Task<ScanHistory> CreateAsync(byte[]? image, string? imageFileName, string? imageContentType, string text, ScanFlag flag, CancellationToken cancellationToken = default);
         Task<ScanHistory> UpdateAsync(int id, string text, ScanFlag flag, CancellationToken cancellationToken = default);
         Task DeleteAsync(int id, CancellationToken cancellationToken = default);
@@ -30,6 +31,11 @@ namespace AllergyScan.Services
         public Task<PagedResult<ScanHistory>> GetHistoryAsync(int page, int pageSize, CancellationToken cancellationToken = default)
         {
             return GetAsync<PagedResult<ScanHistory>>($"api/scans?page={page}&pageSize={pageSize}", cancellationToken);
+        }
+
+        public Task<ScanHistory> GetByIdAsync(int id, CancellationToken cancellationToken = default)
+        {
+            return GetAsync<ScanHistory>($"api/scans/{id}", cancellationToken);
         }
 
         public Task<ScanHistory> CreateAsync(byte[]? image, string? imageFileName, string? imageContentType, string text, ScanFlag flag, CancellationToken cancellationToken = default)
@@ -81,7 +87,7 @@ namespace AllergyScan.Services
             using var response = await Client.PostAsync(BuildUri(relativeUrl), content, cancellationToken);
             await EnsureSuccessAsync(response, cancellationToken);
             var json = await response.Content.ReadAsStringAsync(cancellationToken);
-            return JsonSerializer.Deserialize<TResponse>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true })!;
+            return JsonSerializer.Deserialize<TResponse>(json, JsonOptions)!;
         }
 
         private static async Task<TResponse> PutContentAsync<TResponse>(string relativeUrl, HttpContent content, CancellationToken cancellationToken)
@@ -89,7 +95,7 @@ namespace AllergyScan.Services
             using var response = await Client.PutAsync(BuildUri(relativeUrl), content, cancellationToken);
             await EnsureSuccessAsync(response, cancellationToken);
             var json = await response.Content.ReadAsStringAsync(cancellationToken);
-            return JsonSerializer.Deserialize<TResponse>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true })!;
+            return JsonSerializer.Deserialize<TResponse>(json, JsonOptions)!;
         }
 
         private static async Task DeleteRequestAsync(string relativeUrl, CancellationToken cancellationToken)

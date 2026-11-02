@@ -9,6 +9,7 @@ namespace AllergyScan.Services
         Task<List<Allergy>> GetAllAsync(CancellationToken cancellationToken = default);
         Task<Allergy> CreateAsync(string name, CancellationToken cancellationToken = default);
         Task<Allergy> UpdateAsync(int id, string name, CancellationToken cancellationToken = default);
+        Task<Allergy> UpdateAsync(int id, string name, ScanFlag flag, CancellationToken cancellationToken = default);
         Task DeleteAsync(int id, CancellationToken cancellationToken = default);
     }
 
@@ -33,6 +34,12 @@ namespace AllergyScan.Services
         public Task<Allergy> UpdateAsync(int id, string name, CancellationToken cancellationToken = default)
         {
             var request = new AllergyRequest { Name = name };
+            return PutAsync<AllergyRequest, Allergy>($"api/allergies/{id}", request, cancellationToken);
+        }
+
+        public Task<Allergy> UpdateAsync(int id, string name, ScanFlag flag, CancellationToken cancellationToken = default)
+        {
+            var request = new AllergyRequest { Name = name, Flag = flag };
             return PutAsync<AllergyRequest, Allergy>($"api/allergies/{id}", request, cancellationToken);
         }
 
@@ -91,6 +98,7 @@ namespace AllergyScan.Services
         private sealed class AllergyRequest
         {
             public string Name { get; set; } = string.Empty;
+            public ScanFlag Flag { get; set; } = ScanFlag.NoAllergen;
         }
 
         private sealed class ProblemDetails

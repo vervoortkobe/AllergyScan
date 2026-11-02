@@ -32,9 +32,13 @@
                                          HorizontalOptions="Center"
                                          VerticalOptions="Center"
                                          Spacing="8">
-                        <Label Text="📷"
-                               FontSize="42"
-                               HorizontalOptions="Center" />
+                        <!-- MAUI converts SVG images in Resources/Images to PNG at build time. -->
+                        <Image Source="icon_camera_white.png"
+                               WidthRequest="56"
+                               HeightRequest="56"
+                               Aspect="AspectFit"
+                               HorizontalOptions="Center"
+                               SemanticProperties.Description="Camera" />
                         <Label Text="No photo yet"
                                FontAttributes="Bold"
                                HorizontalOptions="Center" />

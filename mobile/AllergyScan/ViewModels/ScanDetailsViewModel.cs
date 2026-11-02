@@ -8,13 +8,14 @@ using AllergyScan.Services;
 
 namespace AllergyScan.ViewModels
 {
-    public class ScanDetailsViewModel : ObservableRecipient, IRecipient<ScanSelectedMessage>
+    public class ScanDetailsViewModel : ObservableObject
     {
         private readonly IScanDataService scanDataService;
         private readonly INavigationService navigationService;
         private readonly IDialogService dialogService;
 
         private ScanHistory? scan;
+        private int? scanId;
         private string editText = string.Empty;
         private ScanFlag selectedFlag;
         private bool isBusy;
@@ -32,10 +33,6 @@ namespace AllergyScan.ViewModels
             SaveCommand = new AsyncRelayCommand(SaveAsync);
             DeleteCommand = new AsyncRelayCommand(DeleteAsync);
             CancelCommand = new AsyncRelayCommand(navigationService.GoBackAsync);
-
-            Messenger.Register<ScanDetailsViewModel, ScanSelectedMessage>(
-                this,
-                static (recipient, message) => recipient.Receive(message));
         }
 
         public ScanHistory? Scan
@@ -153,12 +150,54 @@ namespace AllergyScan.ViewModels
 
         public ICommand CancelCommand { get; }
 
-        public void Receive(ScanSelectedMessage message)
+        public void ApplyQueryAttributes(IDictionary<string, object> query)
         {
-            Scan = message.Value;
-            EditText = message.Value.Text;
-            SelectedFlag = message.Value.Flag;
-            StatusMessage = string.Empty;
+            if (query.TryGetValue("id", out var value)
+                && int.TryParse(value?.ToString(), out var id))
+            {
+                scanId = id;
+                _ = InitializeAsync();
+            }
+        }
+
+        public async Task InitializeAsync()
+        {
+            if (IsBusy)
+            {
+                return;
+            }
+
+            if (scanId is null)
+            {
+                StatusMessage = "No scan was selected.";
+                return;
+            }
+
+            if (Scan is not null && Scan.Id == scanId.Value)
+            {
+                return;
+            }
+
+            IsBusy = true;
+            StatusMessage = "Loading scan…";
+
+            try
+            {
+                var loaded = await scanDataService.GetByIdAsync(scanId.Value);
+                Scan = loaded;
+                EditText = loaded.Text;
+                SelectedFlag = loaded.Flag;
+                StatusMessage = string.Empty;
+            }
+            catch (Exception exception)
+            {
+                StatusMessage = "Could not load the scan.";
+                await dialogService.ShowAlertAsync("Could not load scan", exception.Message);
+            }
+            finally
+            {
+                IsBusy = false;
+            }
         }
 
         private async Task SaveAsync()

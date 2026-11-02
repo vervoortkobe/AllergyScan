@@ -17,7 +17,8 @@
                        Aspect="AspectFill" />
             </Border>
 
-            <Border BackgroundColor="{Binding FlagBackgroundColor}"
+            <Border IsVisible="{Binding HasScan}"
+                    BackgroundColor="{Binding FlagBackgroundColor}"
                     StrokeThickness="0"
                     StrokeShape="RoundRectangle 12"
                     Padding="16">
