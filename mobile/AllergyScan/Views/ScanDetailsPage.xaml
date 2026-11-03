@@ -35,6 +35,11 @@
                     <Label Text="{Binding ScannedAtText}"
                            FontSize="12"
                            TextColor="{Binding FlagColor}" />
+                    <Label Text="{Binding DetectedAllergens, StringFormat='Allergens: {0}'}"
+                           FontSize="13"
+                           FontAttributes="Bold"
+                           TextColor="{Binding FlagColor}"
+                           IsVisible="{Binding HasDetectedAllergens}" />
                 </VerticalStackLayout>
             </Border>
 
@@ -44,11 +49,11 @@
                     StrokeThickness="1"
                     Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
                     Padding="8">
-                <Editor Text="{Binding EditText}"
-                        AutoSize="TextChanges"
-                        MinimumHeightRequest="120"
-                        BackgroundColor="Transparent"
-                        Placeholder="{loc:Translate ScanDetails.IngredientPlaceholder}" />
+                <ScrollView HeightRequest="120">
+                    <Label Text="{Binding EditText}"
+                           FontSize="13"
+                           LineBreakMode="WordWrap" />
+                </ScrollView>
             </Border>
 
             <Grid ColumnDefinitions="*,Auto">

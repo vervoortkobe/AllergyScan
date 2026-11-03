@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="AllergyScan.Views.ResultPage"
+             xmlns:viewModels="clr-namespace:AllergyScan.ViewModels"
+             x:DataType="viewModels:ResultViewModel"
+             Title="Result"
+             BackgroundColor="{Binding ResultBgColor}">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="20" HorizontalOptions="Center">
+            
+            <!-- Result icon and title -->
+            <VerticalStackLayout Spacing="10" HorizontalOptions="Center" Padding="30">
+                <Label Text="{Binding ResultIcon}"
+                       FontSize="60"
+                       TextColor="{Binding ResultColor}"
+                       HorizontalOptions="Center" />
+                <Label Text="{Binding ResultTitle}"
+                       FontSize="24"
+                       FontAttributes="Bold"
+                       TextColor="{Binding ResultColor}"
+                       HorizontalOptions="Center" />
+            </VerticalStackLayout>
+
+            <!-- Edibility status -->
+            <Label Text="{Binding ResultSubtitle}"
+                   FontSize="18"
+                   TextColor="{Binding ResultColor}"
+                   HorizontalTextAlignment="Center"
+                   HorizontalOptions="Center" />
+
+            <!-- Allergen details (if any) -->
+            <Label Text="{Binding Allergens}"
+                   FontSize="16"
+                   FontAttributes="Bold"
+                   TextColor="{Binding ResultColor}"
+                   HorizontalTextAlignment="Center"
+                   LineBreakMode="TailTruncation"
+                   MaxLines="2"
+                   IsVisible="{Binding HasAllergens}" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

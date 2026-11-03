@@ -101,11 +101,10 @@ namespace AllergyScan.Views
                 var border = new Border
                 {
                     StrokeShape = new RoundRectangle { CornerRadius = 8 },
-                    StrokeThickness = 1,
+                    StrokeThickness = 0,
                     Padding = new Thickness(10, 6),
                     Margin = new Thickness(0, 0, 0, 8)
                 };
-                border.SetBinding(Border.StrokeProperty, "FlagStrokeColor");
                 border.SetBinding(Border.BackgroundColorProperty, "FlagBackgroundColor");
 
                 var tap = new TapGestureRecognizer();

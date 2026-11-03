@@ -90,7 +90,9 @@
                                FontAttributes="Bold"
                                TextColor="{Binding FlagColor}" />
                         <Label Text="{Binding FlagDescription}"
-                               TextColor="{Binding FlagColor}" />
+                               TextColor="{Binding FlagColor}"
+                               LineBreakMode="TailTruncation"
+                               MaxLines="2" />
                     </VerticalStackLayout>
                 </Border>
 
@@ -100,11 +102,10 @@
                         StrokeThickness="1"
                         Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
                         Padding="8">
-                    <Editor Text="{Binding OriginalText}"
-                            AutoSize="TextChanges"
-                            MinimumHeightRequest="100"
-                            BackgroundColor="Transparent"
-                            Placeholder="{loc:Translate Scan.OriginalPlaceholder}" />
+                    <Label Text="{Binding OriginalTextPreview}"
+                           FontSize="13"
+                           LineBreakMode="TailTruncation"
+                           MaxLines="3" />
                 </Border>
 
                 <Label Text="{Binding DetectedLanguageText}"
@@ -121,13 +122,11 @@
                         Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
                         Padding="12"
                         BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray900}}">
-                    <Label Text="{Binding TranslatedText}"
-                           FontSize="13" />
+                    <Label Text="{Binding TranslatedTextPreview}"
+                           FontSize="13"
+                           LineBreakMode="TailTruncation"
+                           MaxLines="3" />
                 </Border>
-
-                <Button Text="{loc:Translate Scan.SaveToHistory}"
-                        Command="{Binding SaveCommand}"
-                        IsEnabled="{Binding CanSave}" />
 
                 <Button Text="{loc:Translate Scan.ScanAnother}"
                         Command="{Binding ResetCommand}"

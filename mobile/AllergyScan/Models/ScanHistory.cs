@@ -106,14 +106,14 @@ namespace AllergyScan.Models
             _ => LocalizationService.Instance["Flag.None"]
         };
 
-        public Color FlagColor => Colors.Black;
+        public Color FlagColor => AllergyScan.Services.FlagColors.TextColor;
 
         public Color FlagBackgroundColor => Flag switch
         {
-            ScanFlag.Contains => Color.FromArgb("#434343"),
-            ScanFlag.MayContain => Color.FromArgb("#666666"),
-            ScanFlag.MayContainTraces => Color.FromArgb("#999999"),
-            _ => Color.FromArgb("#D1FADF")
+            ScanFlag.Contains => AllergyScan.Services.FlagColors.ContainsBackground,
+            ScanFlag.MayContain => AllergyScan.Services.FlagColors.MayContainBackground,
+            ScanFlag.MayContainTraces => AllergyScan.Services.FlagColors.MayContainTracesBackground,
+            _ => AllergyScan.Services.FlagColors.SafeBackground
         };
 
         public string ScannedAtText => ScannedAt == default

@@ -25,11 +25,28 @@ namespace AllergyScan.Services
 
     /// <summary>
     /// Checks the ingredient text against the user's allergy profile. Both the
-    /// original OCR text and the translated text are checked, and common allergen
-    /// names are recognized in English, Dutch, French, German and Spanish.
+    /// original OCR text and the translated text are checked. Allergen names are
+    /// recognized in English, Dutch, French, German and Spanish, plus any
+    /// translations stored on the allergy. The severity (contains / may contain /
+    /// may contain traces) is determined from the surrounding context.
     /// </summary>
     public sealed class AllergenDetectionService : IAllergenDetectionService
     {
+        private static readonly string[] MayContainPhrases = new[]
+        {
+            "may contain", "may contains", "contains traces", "traces of",
+            "kan bevatten", "kan sporen bevatten", "bevat sporen", "sporen van",
+            "peut contenir", "traces de",
+            "kann enthalten", "kann spuren enthalten", "spuren von",
+            "puede contener", "puede contener trazas", "trazas de",
+            "puo contenere", "tracce di"
+        };
+
+        private static readonly string[] TraceIndicators = new[]
+        {
+            "traces", "sporen", "tracce", "trazas", "spuren"
+        };
+
         public IReadOnlyList<(Allergy Allergy, ScanFlag Flag)> Detect(
             string originalText,
             string translatedText,
@@ -40,7 +57,7 @@ namespace AllergyScan.Services
                 .Distinct()
                 .ToArray();
 
-            var matches = new List<(Allergy Allergy, ScanFlag Flag)>();
+            var results = new List<(Allergy Allergy, ScanFlag Flag)>();
             var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             foreach (var allergy in allergies)
@@ -59,15 +76,35 @@ namespace AllergyScan.Services
                         allergy.TranslationEs
                     })
                     .Where(t => !string.IsNullOrWhiteSpace(t))
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
                     .ToArray();
 
-                if (searchTerms.Any(term => haystacks.Any(text => ContainsTerm(text, term))))
+                var severity = ScanFlag.NoAllergen;
+
+                foreach (var haystack in haystacks)
                 {
-                    matches.Add((allergy, ScanFlag.Contains));
+                    foreach (var term in searchTerms)
+                    {
+                        if (!ContainsTerm(haystack, term))
+                        {
+                            continue;
+                        }
+
+                        var termSeverity = DetermineSeverity(haystack, term);
+                        if (termSeverity > severity)
+                        {
+                            severity = termSeverity;
+                        }
+                    }
+                }
+
+                if (severity != ScanFlag.NoAllergen)
+                {
+                    results.Add((allergy, severity));
                 }
             }
 
-            return matches;
+            return results;
         }
 
         public IReadOnlyList<(Allergy Allergy, ScanFlag Flag)> DetectMayContain(
@@ -75,7 +112,9 @@ namespace AllergyScan.Services
             string translatedText,
             IEnumerable<Allergy> allergies)
         {
-            return DetectSeverity(originalText, translatedText, allergies, ScanFlag.MayContain);
+            return Detect(originalText, translatedText, allergies)
+                .Where(r => r.Flag == ScanFlag.MayContain)
+                .ToList();
         }
 
         public IReadOnlyList<(Allergy Allergy, ScanFlag Flag)> DetectMayContainTraces(
@@ -83,48 +122,97 @@ namespace AllergyScan.Services
             string translatedText,
             IEnumerable<Allergy> allergies)
         {
-            return DetectSeverity(originalText, translatedText, allergies, ScanFlag.MayContainTraces);
+            return Detect(originalText, translatedText, allergies)
+                .Where(r => r.Flag == ScanFlag.MayContainTraces)
+                .ToList();
         }
 
-        private static IReadOnlyList<(Allergy Allergy, ScanFlag Flag)> DetectSeverity(
-            string originalText,
-            string translatedText,
-            IEnumerable<Allergy> allergies,
-            ScanFlag flag)
+        private static ScanFlag DetermineSeverity(string normalizedText, string term)
         {
-            var haystacks = new[] { Normalize(originalText), Normalize(translatedText) }
-                .Where(text => text.Length > 0)
-                .Distinct()
-                .ToArray();
-
-            var matches = new List<(Allergy Allergy, ScanFlag Flag)>();
-            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-            foreach (var allergy in allergies)
+            var normalizedTerm = Normalize(term);
+            if (normalizedTerm.Length == 0)
             {
-                if (string.IsNullOrWhiteSpace(allergy.Name) || !seen.Add(allergy.Name.Trim()))
+                return ScanFlag.NoAllergen;
+            }
+
+            // Find all occurrences of the term.
+            var matches = new List<int>();
+            var idx = 0;
+            while (true)
+            {
+                var pos = normalizedText.IndexOf(normalizedTerm, idx, StringComparison.OrdinalIgnoreCase);
+                if (pos < 0)
                 {
-                    continue;
+                    break;
                 }
+                matches.Add(pos);
+                idx = pos + normalizedTerm.Length;
+            }
 
-                var searchTerms = AllergenCatalog.GetSearchTerms(allergy.Name)
-                    .Concat(new[]
-                    {
-                        allergy.TranslationNl,
-                        allergy.TranslationFr,
-                        allergy.TranslationDe,
-                        allergy.TranslationEs
-                    })
-                    .Where(t => !string.IsNullOrWhiteSpace(t))
-                    .ToArray();
+            if (matches.Count == 0)
+            {
+                return ScanFlag.NoAllergen;
+            }
 
-                if (searchTerms.Any(term => haystacks.Any(text => ContainsTerm(text, term))))
+            var hasMayContain = false;
+            var hasTraces = false;
+            var hasPlain = false;
+
+            foreach (var pos in matches)
+            {
+                // Look back up to 80 chars and forward up to 40 chars for a may-contain
+                // indicator, without crossing a sentence boundary.
+                var lookbackStart = Math.Max(0, pos - 80);
+                var backward = normalizedText.Substring(lookbackStart, pos - lookbackStart);
+                var lookforwardEnd = Math.Min(normalizedText.Length, pos + normalizedTerm.Length + 40);
+                var forward = normalizedText.Substring(pos + normalizedTerm.Length,
+                    lookforwardEnd - (pos + normalizedTerm.Length));
+
+                var lastBoundary = Math.Max(
+                    backward.LastIndexOf('.'),
+                    Math.Max(backward.LastIndexOf(';'), backward.LastIndexOf('\n')));
+                var backContext = lastBoundary >= 0
+                    ? backward.Substring(lastBoundary + 1)
+                    : backward;
+
+                // Dutch "kan ... bevatten" puts the verb after the allergen list.
+                var dutchMayContain = backContext.Contains("kan", StringComparison.OrdinalIgnoreCase)
+                    && forward.Contains("bevatten", StringComparison.OrdinalIgnoreCase);
+
+                var matchedPhrase = MayContainPhrases.FirstOrDefault(p =>
+                    backContext.Contains(p, StringComparison.OrdinalIgnoreCase)
+                    || forward.Contains(p, StringComparison.OrdinalIgnoreCase));
+
+                if (matchedPhrase is not null || dutchMayContain)
                 {
-                    matches.Add((allergy, flag));
+                    hasMayContain = true;
+                    var combined = backContext + " " + forward;
+                    if (TraceIndicators.Any(t => combined.Contains(t, StringComparison.OrdinalIgnoreCase))
+                        || (matchedPhrase is not null && TraceIndicators.Any(t => matchedPhrase.Contains(t, StringComparison.OrdinalIgnoreCase))))
+                    {
+                        hasTraces = true;
+                    }
+                }
+                else
+                {
+                    hasPlain = true;
                 }
             }
 
-            return matches;
+            if (hasTraces)
+            {
+                return ScanFlag.MayContainTraces;
+            }
+            if (hasMayContain)
+            {
+                return ScanFlag.MayContain;
+            }
+            if (hasPlain)
+            {
+                return ScanFlag.Contains;
+            }
+
+            return ScanFlag.NoAllergen;
         }
 
         private static bool ContainsTerm(string normalizedText, string term)
@@ -142,6 +230,11 @@ namespace AllergyScan.Services
 
         private static string Normalize(string value)
         {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return string.Empty;
+            }
+
             var decomposed = value.Normalize(NormalizationForm.FormD);
             var builder = new StringBuilder(decomposed.Length);
 
@@ -154,81 +247,10 @@ namespace AllergyScan.Services
                     continue;
                 }
 
-                builder.Append(char.IsLetterOrDigit(character)
-                    ? char.ToLowerInvariant(character)
-                    : ' ');
+                builder.Append(char.ToLowerInvariant(character));
             }
 
-            return Regex.Replace(builder.ToString(), @"\s+", " ").Trim();
-        }
-    }
-
-    internal static class AllergenCatalog
-    {
-        // Each group contains synonyms for one allergen in several languages.
-        // A user allergy that matches any term in a group is checked against all
-        // terms of that group.
-        private static readonly string[][] Groups =
-        {
-            new[] { "milk", "melk", "lait", "milch", "leche", "dairy", "zuivel", "lactose", "lactosa" },
-            new[] { "egg", "eggs", "ei", "eieren", "oeuf", "oeufs", "huevo", "huevos", "eier" },
-            new[] { "peanut", "peanuts", "pinda", "pindas", "arachide", "arachides", "erdnuss", "erdnuesse", "cacahuete", "cacahuetes" },
-            new[] { "soy", "soya", "soja", "soybean", "soybeans", "sojaboon", "sojabonen", "sojalecithin", "sojalecitine" },
-            new[] { "wheat", "tarwe", "blé", "ble", "weizen", "trigo", "gluten" },
-            new[] { "fish", "vis", "poisson", "fisch", "pescado", "pescados" },
-            new[] { "shellfish", "crustacean", "crustaceans", "schaaldier", "schaaldieren", "crustace", "crustaces", "krustentier", "krustentiere", "marisco", "mariscos" },
-            new[] { "sesame", "sesam", "sesamo", "sésame" },
-            new[] { "mustard", "mosterd", "moutarde", "senf", "mostaza" },
-            new[] { "celery", "selder", "selderij", "céleri", "celeri", "sellerie", "apio" },
-            new[] { "lupin", "lupine", "lupinemeel", "lupinenmehl", "altramuz" },
-            new[] { "sulphite", "sulphites", "sulfite", "sulfites", "sulfiet", "sulfieten", "sulfito", "sulfitos" },
-            new[] { "tree nut", "tree nuts", "noten", "noix", "nuss", "nuesse", "frutos secos", "almond", "amandel", "amande", "mandel", "almendra", "hazelnut", "hazelnoot", "noisette", "haselnuss", "avellana", "walnut", "walnoot", "noix", "walnuss", "nuez", "cashew", "cashewnoot", "noix de cajou", "cashewnuss", "anacardo", "pistachio", "pistache", "pistazie", "pistacho" }
-        };
-
-        public static IReadOnlyList<string> GetSearchTerms(string allergyName)
-        {
-            var normalized = Normalize(allergyName);
-
-            foreach (var group in Groups)
-            {
-                if (group.Any(term => IsSameWord(Normalize(term), normalized)))
-                {
-                    return group;
-                }
-            }
-
-            return new[] { allergyName };
-        }
-
-        private static bool IsSameWord(string left, string right)
-        {
-            return left == right
-                || left == right + "s"
-                || right == left + "s"
-                || left == right + "es"
-                || right == left + "es";
-        }
-
-        private static string Normalize(string value)
-        {
-            var decomposed = value.Normalize(NormalizationForm.FormD);
-            var builder = new StringBuilder(decomposed.Length);
-
-            foreach (var character in decomposed)
-            {
-                var category = CharUnicodeInfo.GetUnicodeCategory(character);
-
-                if (category == UnicodeCategory.NonSpacingMark)
-                {
-                    continue;
-                }
-
-                builder.Append(char.IsLetterOrDigit(character)
-                    ? char.ToLowerInvariant(character)
-                    : ' ');
-            }
-
-            return Regex.Replace(builder.ToString(), @"\s+", " ").Trim();
+            return builder.ToString();
         }
     }
 }

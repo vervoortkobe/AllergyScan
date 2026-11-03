@@ -8,6 +8,7 @@ namespace AllergyScan.ViewModels
 {
     public class ResultViewModel : ObservableObject
     {
+        private int scanId;
         private ScanFlag flag;
         private string allergens = string.Empty;
         private bool isAllergen;
@@ -18,6 +19,12 @@ namespace AllergyScan.ViewModels
         private Color resultColor;
         private Color resultBgColor;
         private string resultIcon = string.Empty;
+
+        public int ScanId
+        {
+            get => scanId;
+            set => SetProperty(ref scanId, value);
+        }
 
         public ScanFlag Flag
         {
@@ -85,7 +92,17 @@ namespace AllergyScan.ViewModels
 
         public ResultViewModel(INavigationService navigationService)
         {
-            BackCommand = new AsyncRelayCommand(navigationService.GoBackAsync);
+            BackCommand = new AsyncRelayCommand(async () =>
+            {
+                if (ScanId > 0)
+                {
+                    await navigationService.NavigateToAsync($"scanDetails?id={ScanId}");
+                }
+                else
+                {
+                    await navigationService.GoBackAsync();
+                }
+            });
         }
 
         private static string T(string key) => LocalizationService.Instance[key];
@@ -103,8 +120,8 @@ namespace AllergyScan.ViewModels
                     IsSafe = false;
                     ResultTitle = T("Result.AllergenDetected");
                     ResultSubtitle = string.Format(T("Result.ContainsDescription"), allergens);
-                    ResultColor = Colors.Black;
-                    ResultBgColor = Color.FromArgb("#434343");
+                    ResultColor = Colors.White;
+                    ResultBgColor = AllergyScan.Services.FlagColors.ContainsBackground;
                     ResultIcon = "✕";
                     break;
                 case ScanFlag.MayContain:
@@ -113,8 +130,8 @@ namespace AllergyScan.ViewModels
                     IsSafe = false;
                     ResultTitle = T("Result.MayContain");
                     ResultSubtitle = string.Format(T("Result.MayContainDescription"), allergens);
-                    ResultColor = Colors.Black;
-                    ResultBgColor = Color.FromArgb("#666666");
+                    ResultColor = AllergyScan.Services.FlagColors.TextColor;
+                    ResultBgColor = AllergyScan.Services.FlagColors.MayContainBackground;
                     ResultIcon = "!";
                     break;
                 case ScanFlag.MayContainTraces:
@@ -123,8 +140,8 @@ namespace AllergyScan.ViewModels
                     IsSafe = false;
                     ResultTitle = T("Result.MayContainTraces");
                     ResultSubtitle = string.Format(T("Result.MayContainTracesDescription"), allergens);
-                    ResultColor = Colors.Black;
-                    ResultBgColor = Color.FromArgb("#999999");
+                    ResultColor = AllergyScan.Services.FlagColors.TextColor;
+                    ResultBgColor = AllergyScan.Services.FlagColors.MayContainTracesBackground;
                     ResultIcon = "!";
                     break;
                 default:
@@ -133,8 +150,8 @@ namespace AllergyScan.ViewModels
                     IsSafe = true;
                     ResultTitle = T("Result.NoAllergens");
                     ResultSubtitle = T("Result.NoneDescription");
-                    ResultColor = Colors.Black;
-                    ResultBgColor = Color.FromArgb("#D1FADF");
+                    ResultColor = AllergyScan.Services.FlagColors.TextColor;
+                    ResultBgColor = AllergyScan.Services.FlagColors.SafeBackground;
                     ResultIcon = "✓";
                     break;
             }

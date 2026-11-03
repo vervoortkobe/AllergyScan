@@ -6,9 +6,9 @@ namespace AllergyScan.Models
     public enum ScanFlag
     {
         NoAllergen = 0,
-        Contains = 1,
+        MayContainTraces = 1,
         MayContain = 2,
-        MayContainTraces = 3
+        Contains = 3
     }
 
     public static class ScanFlagExtensions
@@ -19,9 +19,9 @@ namespace AllergyScan.Models
         /// </summary>
         public static ScanFlag NextSeverity(this ScanFlag flag) => flag switch
         {
-            ScanFlag.MayContainTraces => ScanFlag.MayContain,
+            ScanFlag.Contains => ScanFlag.MayContainTraces,
             ScanFlag.MayContain => ScanFlag.Contains,
-            _ => ScanFlag.MayContainTraces
+            _ => ScanFlag.MayContain
         };
 
         /// <summary>Short user-facing text for an allergy severity.</summary>

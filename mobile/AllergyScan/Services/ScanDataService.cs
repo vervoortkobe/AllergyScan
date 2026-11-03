@@ -1,4 +1,5 @@
 using AllergyScan.Models;
+using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -17,16 +18,25 @@ namespace AllergyScan.Services
 
     public class ScanDataService : IScanDataService
     {
-        private static readonly HttpClient Client = new()
-        {
-            Timeout = TimeSpan.FromSeconds(60)
-        };
+        private readonly HttpClient client;
 
         private static readonly JsonSerializerOptions JsonOptions = new()
         {
             PropertyNameCaseInsensitive = true,
             Converters = { new JsonStringEnumConverter() }
         };
+
+        public ScanDataService()
+        {
+            var handler = new HttpClientHandler
+            {
+                AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
+            };
+            client = new HttpClient(handler)
+            {
+                Timeout = TimeSpan.FromSeconds(60)
+            };
+        }
 
         public Task<PagedResult<ScanHistory>> GetHistoryAsync(int page, int pageSize, CancellationToken cancellationToken = default)
         {
@@ -74,34 +84,78 @@ namespace AllergyScan.Services
             return PutContentAsync<ScanHistory>($"api/scans/{id}", content, cancellationToken);
         }
 
-        private static async Task<T> GetAsync<T>(string relativeUrl, CancellationToken cancellationToken)
+        private async Task<T> GetAsync<T>(string relativeUrl, CancellationToken cancellationToken)
         {
-            using var response = await Client.GetAsync(BuildUri(relativeUrl), cancellationToken);
-            await EnsureSuccessAsync(response, cancellationToken);
-            var json = await response.Content.ReadAsStringAsync(cancellationToken);
-            return JsonSerializer.Deserialize<T>(json, JsonOptions)!;
+            try
+            {
+                using var response = await client.GetAsync(BuildUri(relativeUrl), cancellationToken);
+                await EnsureSuccessAsync(response, cancellationToken);
+                var json = await response.Content.ReadAsStringAsync(cancellationToken);
+                return JsonSerializer.Deserialize<T>(json, JsonOptions)!;
+            }
+            catch (HttpRequestException ex) when (ex.StatusCode.HasValue)
+            {
+                throw new ApiException(ex.StatusCode.Value, ex.Message);
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new ApiException(HttpStatusCode.ServiceUnavailable, ex.Message);
+            }
         }
 
-        private static async Task<TResponse> PostContentAsync<TResponse>(string relativeUrl, HttpContent content, CancellationToken cancellationToken)
+        private async Task<TResponse> PostContentAsync<TResponse>(string relativeUrl, HttpContent content, CancellationToken cancellationToken)
         {
-            using var response = await Client.PostAsync(BuildUri(relativeUrl), content, cancellationToken);
-            await EnsureSuccessAsync(response, cancellationToken);
-            var json = await response.Content.ReadAsStringAsync(cancellationToken);
-            return JsonSerializer.Deserialize<TResponse>(json, JsonOptions)!;
+            try
+            {
+                using var response = await client.PostAsync(BuildUri(relativeUrl), content, cancellationToken);
+                await EnsureSuccessAsync(response, cancellationToken);
+                var json = await response.Content.ReadAsStringAsync(cancellationToken);
+                return JsonSerializer.Deserialize<TResponse>(json, JsonOptions)!;
+            }
+            catch (HttpRequestException ex) when (ex.StatusCode.HasValue)
+            {
+                throw new ApiException(ex.StatusCode.Value, ex.Message);
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new ApiException(HttpStatusCode.ServiceUnavailable, ex.Message);
+            }
         }
 
-        private static async Task<TResponse> PutContentAsync<TResponse>(string relativeUrl, HttpContent content, CancellationToken cancellationToken)
+        private async Task<TResponse> PutContentAsync<TResponse>(string relativeUrl, HttpContent content, CancellationToken cancellationToken)
         {
-            using var response = await Client.PutAsync(BuildUri(relativeUrl), content, cancellationToken);
-            await EnsureSuccessAsync(response, cancellationToken);
-            var json = await response.Content.ReadAsStringAsync(cancellationToken);
-            return JsonSerializer.Deserialize<TResponse>(json, JsonOptions)!;
+            try
+            {
+                using var response = await client.PutAsync(BuildUri(relativeUrl), content, cancellationToken);
+                await EnsureSuccessAsync(response, cancellationToken);
+                var json = await response.Content.ReadAsStringAsync(cancellationToken);
+                return JsonSerializer.Deserialize<TResponse>(json, JsonOptions)!;
+            }
+            catch (HttpRequestException ex) when (ex.StatusCode.HasValue)
+            {
+                throw new ApiException(ex.StatusCode.Value, ex.Message);
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new ApiException(HttpStatusCode.ServiceUnavailable, ex.Message);
+            }
         }
 
-        private static async Task DeleteRequestAsync(string relativeUrl, CancellationToken cancellationToken)
+        private async Task DeleteRequestAsync(string relativeUrl, CancellationToken cancellationToken)
         {
-            using var response = await Client.DeleteAsync(BuildUri(relativeUrl), cancellationToken);
-            await EnsureSuccessAsync(response, cancellationToken);
+            try
+            {
+                using var response = await client.DeleteAsync(BuildUri(relativeUrl), cancellationToken);
+                await EnsureSuccessAsync(response, cancellationToken);
+            }
+            catch (HttpRequestException ex) when (ex.StatusCode.HasValue)
+            {
+                throw new ApiException(ex.StatusCode.Value, ex.Message);
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new ApiException(HttpStatusCode.ServiceUnavailable, ex.Message);
+            }
         }
 
         private static Uri BuildUri(string relativeUrl)
@@ -114,8 +168,15 @@ namespace AllergyScan.Services
         {
             if (!response.IsSuccessStatusCode)
             {
-                var error = await response.Content.ReadFromJsonAsync<ProblemDetails>(cancellationToken);
-                throw new Exception(error?.Detail ?? response.ReasonPhrase);
+                try
+                {
+                    var error = await response.Content.ReadFromJsonAsync<ProblemDetails>(cancellationToken);
+                    throw new ApiException(response.StatusCode, error?.Detail ?? response.ReasonPhrase ?? "Unknown error");
+                }
+                catch (JsonException)
+                {
+                    throw new ApiException(response.StatusCode, response.ReasonPhrase ?? "Unknown error");
+                }
             }
         }
 

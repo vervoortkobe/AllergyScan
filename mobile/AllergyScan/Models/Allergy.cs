@@ -56,7 +56,7 @@ namespace AllergyScan.Models
             }
         }
 
-        public Color FlagTextColor => Colors.Black;
+        public Color FlagTextColor => AllergyScan.Services.FlagColors.TextColor;
 
         public string FlagBadge => Flag switch
         {
@@ -68,17 +68,17 @@ namespace AllergyScan.Models
 
         public Color FlagBackgroundColor => Flag switch
         {
-            ScanFlag.Contains => Color.FromArgb("#434343"),
-            ScanFlag.MayContain => Color.FromArgb("#666666"),
-            ScanFlag.MayContainTraces => Color.FromArgb("#999999"),
+            ScanFlag.Contains => AllergyScan.Services.FlagColors.ContainsBackground,
+            ScanFlag.MayContain => AllergyScan.Services.FlagColors.MayContainBackground,
+            ScanFlag.MayContainTraces => AllergyScan.Services.FlagColors.MayContainTracesBackground,
             _ => Color.FromArgb("#F2F2F2")
         };
 
         public Color FlagStrokeColor => Flag switch
         {
-            ScanFlag.Contains => Color.FromArgb("#B42318"),
-            ScanFlag.MayContain => Color.FromArgb("#B54708"),
-            ScanFlag.MayContainTraces => Color.FromArgb("#B8860B"),
+            ScanFlag.Contains => AllergyScan.Services.FlagColors.ContainsBackground,
+            ScanFlag.MayContain => AllergyScan.Services.FlagColors.MayContainBackground,
+            ScanFlag.MayContainTraces => AllergyScan.Services.FlagColors.MayContainTracesBackground,
             _ => Color.FromArgb("#ACACAC")
         };
 

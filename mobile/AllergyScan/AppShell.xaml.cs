@@ -9,6 +9,7 @@ namespace AllergyScan
         private readonly ILanguageDataService languageDataService;
         private readonly IServiceProvider serviceProvider;
         private bool hasCheckedStartup;
+        private static bool routesRegistered = false;
 
         public AppShell(
             IServiceProvider serviceProvider,
@@ -24,15 +25,15 @@ namespace AllergyScan
 
         private void RegisterRoutes()
         {
-            // Only register each route if it doesn't already exist
-            try { Routing.RegisterRoute("scanDetails", new ServiceRouteFactory<Views.ScanDetailsPage>(serviceProvider)); }
-            catch { }
-            try { Routing.RegisterRoute("setup", new ServiceRouteFactory<Views.SetupLanguagePage>(serviceProvider)); }
-            catch { }
-            try { Routing.RegisterRoute("setup-allergies", new ServiceRouteFactory<Views.SetupAllergiesPage>(serviceProvider)); }
-            catch { }
-            try { Routing.RegisterRoute("result", new ServiceRouteFactory<Views.ResultPage>(serviceProvider)); }
-            catch { }
+            // Only register routes once to avoid duplicate route errors
+            if (routesRegistered)
+                return;
+            routesRegistered = true;
+
+            Routing.RegisterRoute("scanDetails", new ServiceRouteFactory<Views.ScanDetailsPage>(serviceProvider));
+            Routing.RegisterRoute("setup", new ServiceRouteFactory<Views.SetupLanguagePage>(serviceProvider));
+            Routing.RegisterRoute("setup-allergies", new ServiceRouteFactory<Views.SetupAllergiesPage>(serviceProvider));
+            Routing.RegisterRoute("result", new ServiceRouteFactory<Views.ResultPage>(serviceProvider));
         }
 
         private sealed class ServiceRouteFactory<TPage>(IServiceProvider serviceProvider) : RouteFactory

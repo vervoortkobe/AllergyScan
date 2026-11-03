@@ -6,16 +6,19 @@ namespace AllergyScan.Views
 {
     [QueryProperty(nameof(Flag), "flag")]
     [QueryProperty(nameof(Allergens), "allergens")]
-    public class ResultPage : ContentPage
+    [QueryProperty(nameof(ScanId), "scanId")]
+    public partial class ResultPage : ContentPage
     {
         private readonly ResultViewModel viewModel;
         private bool resultApplied;
 
         public string Flag { get; set; } = string.Empty;
         public string Allergens { get; set; } = string.Empty;
+        public string ScanId { get; set; } = string.Empty;
 
         public ResultPage(ResultViewModel viewModel)
         {
+            InitializeComponent();
             this.viewModel = viewModel;
             BindingContext = viewModel;
         }
@@ -24,15 +27,33 @@ namespace AllergyScan.Views
         {
             base.OnAppearing();
 
-            // Query properties are set after the constructor, so the result can only
-            // be applied once the page is about to appear.
-            if (resultApplied || !Enum.TryParse<ScanFlag>(Flag, out var parsedFlag))
+            if (resultApplied)
             {
                 return;
             }
 
+            if (Enum.TryParse<ScanFlag>(Flag, out var parsedFlag))
+            {
+                viewModel.ApplyResult(parsedFlag, Allergens);
+            }
+
+            if (int.TryParse(ScanId, out var id) && id > 0)
+            {
+                viewModel.ScanId = id;
+            }
+
             resultApplied = true;
-            viewModel.ApplyResult(parsedFlag, Allergens);
+        }
+
+        protected override bool OnBackButtonPressed()
+        {
+            if (int.TryParse(ScanId, out var id) && id > 0)
+            {
+                _ = Shell.Current.GoToAsync($"scanDetails?id={id}");
+                return true;
+            }
+
+            return base.OnBackButtonPressed();
         }
     }
 }

@@ -197,11 +197,11 @@
 
     "Flag.Contains": "⚠ Allergeen gedetecteerd",
     "Flag.MayContain": "⚠ Kan allergeen bevatten",
-    "Flag.MayContainTraces": "⚠ Kan sporen bevatten",
+    "Flag.MayContainTraces": "⚠ Kan sporen van allergeen bevatten",
     "Flag.None": "✓ Geen allergenen gedetecteerd",
     "Flag.ContainsDescription": "Dit product bevat: {0}",
     "Flag.MayContainDescription": "Dit product kan bevatten: {0}",
-    "Flag.MayContainTracesDescription": "Dit product kan sporen bevatten van: {0}",
+    "Flag.MayContainTracesDescription": "Dit product kan sporen van {0} bevatten",
     "Flag.NoneDescription": "Geen van je allergieën is gevonden in de ingrediëntentekst.",
     "Flag.Badge.Contains": "bevat",
     "Flag.Badge.MayContain": "kan bevatten",
@@ -314,11 +314,11 @@
 
     "Result.AllergenDetected": "Allergeen gedetecteerd",
     "Result.MayContain": "Kan allergeen bevatten",
-    "Result.MayContainTraces": "Kan sporen bevatten",
+    "Result.MayContainTraces": "Kan sporen van allergeen bevatten",
     "Result.NoAllergens": "Geen allergenen gedetecteerd",
     "Result.ContainsDescription": "Dit product bevat: {0}",
     "Result.MayContainDescription": "Dit product kan bevatten: {0}",
-    "Result.MayContainTracesDescription": "Dit product kan sporen bevatten van: {0}",
+    "Result.MayContainTracesDescription": "Dit product kan sporen van {0} bevatten",
     "Result.NoneDescription": "Geen van je allergieën is gevonden."
   },
   "fr": {

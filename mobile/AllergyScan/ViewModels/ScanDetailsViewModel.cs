@@ -12,6 +12,8 @@ namespace AllergyScan.ViewModels
     public class ScanDetailsViewModel : ObservableObject
     {
         private readonly IScanDataService scanDataService;
+        private readonly IAllergyDataService allergyDataService;
+        private readonly IAllergenDetectionService detectionService;
         private readonly INavigationService navigationService;
         private readonly IDialogService dialogService;
 
@@ -21,13 +23,18 @@ namespace AllergyScan.ViewModels
         private ScanFlag selectedFlag;
         private bool isBusy;
         private string statusMessage = string.Empty;
+        private string detectedAllergens = string.Empty;
 
         public ScanDetailsViewModel(
             IScanDataService scanDataService,
+            IAllergyDataService allergyDataService,
+            IAllergenDetectionService detectionService,
             INavigationService navigationService,
             IDialogService dialogService)
         {
             this.scanDataService = scanDataService;
+            this.allergyDataService = allergyDataService;
+            this.detectionService = detectionService;
             this.navigationService = navigationService;
             this.dialogService = dialogService;
 
@@ -107,7 +114,21 @@ namespace AllergyScan.ViewModels
             }
         }
 
+        public string DetectedAllergens
+        {
+            get => detectedAllergens;
+            private set
+            {
+                if (SetProperty(ref detectedAllergens, value))
+                {
+                    OnPropertyChanged(nameof(HasDetectedAllergens));
+                }
+            }
+        }
+
         public bool HasScan => Scan is not null;
+
+        public bool HasDetectedAllergens => !string.IsNullOrWhiteSpace(detectedAllergens);
 
         public bool HasImage => Scan?.HasImage == true;
 
@@ -131,14 +152,14 @@ namespace AllergyScan.ViewModels
 
         private static string T(string key) => LocalizationService.Instance[key];
 
-        public Color FlagColor => Colors.Black;
+        public Color FlagColor => AllergyScan.Services.FlagColors.TextColor;
 
         public Color FlagBackgroundColor => SelectedFlag switch
         {
-            ScanFlag.Contains => Color.FromArgb("#434343"),
-            ScanFlag.MayContain => Color.FromArgb("#666666"),
-            ScanFlag.MayContainTraces => Color.FromArgb("#999999"),
-            _ => Color.FromArgb("#D1FADF")
+            ScanFlag.Contains => AllergyScan.Services.FlagColors.ContainsBackground,
+            ScanFlag.MayContain => AllergyScan.Services.FlagColors.MayContainBackground,
+            ScanFlag.MayContainTraces => AllergyScan.Services.FlagColors.MayContainTracesBackground,
+            _ => AllergyScan.Services.FlagColors.SafeBackground
         };
 
         public IReadOnlyList<ScanFlag> AvailableFlags { get; } =
@@ -188,6 +209,22 @@ namespace AllergyScan.ViewModels
                 EditText = loaded.Text;
                 SelectedFlag = loaded.Flag;
                 StatusMessage = string.Empty;
+
+                try
+                {
+                    var allergies = await allergyDataService.GetAllAsync();
+                    var contains = detectionService.Detect(loaded.Text, string.Empty, allergies);
+                    var mayContain = detectionService.DetectMayContain(loaded.Text, string.Empty, allergies);
+                    var traces = detectionService.DetectMayContainTraces(loaded.Text, string.Empty, allergies);
+                    var names = contains.Concat(mayContain).Concat(traces)
+                        .Select(m => m.Allergy.Name)
+                        .Distinct(StringComparer.OrdinalIgnoreCase);
+                    DetectedAllergens = string.Join(", ", names);
+                }
+                catch
+                {
+                    DetectedAllergens = string.Empty;
+                }
             }
             catch (Exception exception)
             {

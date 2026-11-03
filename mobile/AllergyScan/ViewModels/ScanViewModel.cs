@@ -1,12 +1,13 @@
+using System.Collections.Generic;
+using System.Windows.Input;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using AllergyScan.Localization;
 using AllergyScan.Messages;
 using AllergyScan.Models;
 using AllergyScan.Services;
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
-using CommunityToolkit.Mvvm.Messaging;
 using SkiaSharp;
-using System.Windows.Input;
 
 namespace AllergyScan.ViewModels
 {
@@ -91,8 +92,18 @@ namespace AllergyScan.ViewModels
         public string OriginalText
         {
             get => originalText;
-            set => SetProperty(ref originalText, value);
+            set
+            {
+                if (SetProperty(ref originalText, value))
+                {
+                    OnPropertyChanged(nameof(OriginalTextPreview));
+                }
+            }
         }
+
+        public string OriginalTextPreview => originalText.Length <= 200
+            ? originalText
+            : originalText[..200] + "…";
 
         public string TranslatedText
         {
@@ -102,9 +113,14 @@ namespace AllergyScan.ViewModels
                 if (SetProperty(ref translatedText, value))
                 {
                     OnPropertyChanged(nameof(HasTranslatedText));
+                    OnPropertyChanged(nameof(TranslatedTextPreview));
                 }
             }
         }
+
+        public string TranslatedTextPreview => translatedText.Length <= 200
+            ? translatedText
+            : translatedText[..200] + "…";
 
         public string? DetectedLanguage
         {
@@ -225,7 +241,17 @@ namespace AllergyScan.ViewModels
         public ScanFlag Flag
         {
             get => flag;
-            private set => SetProperty(ref flag, value);
+            private set
+            {
+                if (SetProperty(ref flag, value))
+                {
+                    OnPropertyChanged(nameof(FlagTitle));
+                    OnPropertyChanged(nameof(FlagColor));
+                    OnPropertyChanged(nameof(FlagBackgroundColor));
+                    OnPropertyChanged(nameof(FlagDescription));
+                    OnPropertyChanged(nameof(HasAllergens));
+                }
+            }
         }
 
         public bool CanScan => HasImage && !IsBusy;
@@ -250,14 +276,20 @@ namespace AllergyScan.ViewModels
             _ => T("Flag.None")
         };
 
-        public Color FlagColor => Colors.Black;
+        public Color FlagColor => Flag switch
+        {
+            ScanFlag.Contains => AllergyScan.Services.FlagColors.TextColor,
+            ScanFlag.MayContain => AllergyScan.Services.FlagColors.TextColor,
+            ScanFlag.MayContainTraces => AllergyScan.Services.FlagColors.TextColor,
+            _ => AllergyScan.Services.FlagColors.TextColor
+        };
 
         public Color FlagBackgroundColor => Flag switch
         {
-            ScanFlag.Contains => Color.FromArgb("#434343"),
-            ScanFlag.MayContain => Color.FromArgb("#666666"),
-            ScanFlag.MayContainTraces => Color.FromArgb("#999999"),
-            _ => Color.FromArgb("#D1FADF")
+            ScanFlag.Contains => AllergyScan.Services.FlagColors.ContainsBackground,
+            ScanFlag.MayContain => AllergyScan.Services.FlagColors.MayContainBackground,
+            ScanFlag.MayContainTraces => AllergyScan.Services.FlagColors.MayContainTracesBackground,
+            _ => AllergyScan.Services.FlagColors.SafeBackground
         };
 
         public string FlagDescription => Flag switch
@@ -290,6 +322,38 @@ namespace AllergyScan.ViewModels
                 CurrentLanguageName = T("Language.Offline");
                 CurrentLanguageCode = "en";
             }
+        }
+
+        public void ResetResult()
+        {
+            imageBytes = null;
+            imageSource = null;
+            originalText = string.Empty;
+            translatedText = string.Empty;
+            detectedLanguage = null;
+            detectedAllergens = string.Empty;
+            hasResult = false;
+            hasAllergens = false;
+            hasMayContain = false;
+            hasImage = false;
+            flag = ScanFlag.NoAllergen;
+            statusMessage = string.Empty;
+
+            OnPropertyChanged(nameof(ImageSource));
+            OnPropertyChanged(nameof(HasImage));
+            OnPropertyChanged(nameof(HasResult));
+            OnPropertyChanged(nameof(HasAllergens));
+            OnPropertyChanged(nameof(HasMayContain));
+            OnPropertyChanged(nameof(OriginalText));
+            OnPropertyChanged(nameof(TranslatedText));
+            OnPropertyChanged(nameof(DetectedLanguage));
+            OnPropertyChanged(nameof(DetectedAllergens));
+            OnPropertyChanged(nameof(Flag));
+            OnPropertyChanged(nameof(FlagTitle));
+            OnPropertyChanged(nameof(FlagColor));
+            OnPropertyChanged(nameof(FlagBackgroundColor));
+            OnPropertyChanged(nameof(FlagDescription));
+            OnPropertyChanged(nameof(StatusMessage));
         }
 
         private async Task TakePhotoAsync()
@@ -353,6 +417,8 @@ namespace AllergyScan.ViewModels
             StatusMessage = T("Scan.Status.PhotoReady");
         }
 
+        private int savedScanId;
+
         private async Task ScanAsync()
         {
             if (!CanScan || imageBytes is null)
@@ -392,9 +458,9 @@ namespace AllergyScan.ViewModels
 
                 StatusMessage = T("Scan.Status.Comparing");
                 var allergies = await allergyDataService.GetAllAsync();
-                var contains = detectionService.Detect(text, translatedText, allergies);
-                var mayContain = detectionService.DetectMayContain(text, translatedText, allergies);
-                var mayContainTraces = detectionService.DetectMayContainTraces(text, translatedText, allergies);
+                var contains = detectionService.Detect(text, string.Empty, allergies);
+                var mayContain = detectionService.DetectMayContain(text, string.Empty, allergies);
+                var mayContainTraces = detectionService.DetectMayContainTraces(text, string.Empty, allergies);
 
                 OriginalText = text;
                 TranslatedText = translatedText;
@@ -403,6 +469,7 @@ namespace AllergyScan.ViewModels
                 var allMatches = contains.Concat(mayContain).Concat(mayContainTraces);
                 var allMatchesList = allMatches.ToList();
                 HasAllergens = allMatchesList.Count > 0;
+                HasMayContain = allMatchesList.Any(m => m.Flag == ScanFlag.MayContain || m.Flag == ScanFlag.MayContainTraces);
 
                 var maxFlag = allMatchesList.Count > 0
                     ? allMatchesList.Max(m => m.Flag)
@@ -418,7 +485,7 @@ namespace AllergyScan.ViewModels
                 StatusMessage = T("Scan.Status.Saving");
                 await SaveAsync();
 
-                await Shell.Current.GoToAsync($"result?flag={(int)Flag}&allergens={Uri.EscapeDataString(DetectedAllergens ?? string.Empty)}");
+                await Shell.Current.GoToAsync($"result?flag={(int)Flag}&allergens={Uri.EscapeDataString(DetectedAllergens ?? string.Empty)}&scanId={savedScanId}");
             }
             catch (ApiException exception)
             {
@@ -438,7 +505,7 @@ namespace AllergyScan.ViewModels
 
         private async Task SaveAsync()
         {
-            if (!CanSave || imageBytes is null)
+            if (imageBytes is null)
             {
                 return;
             }
@@ -448,12 +515,13 @@ namespace AllergyScan.ViewModels
 
             try
             {
-                await scanDataService.CreateAsync(
+                var saved = await scanDataService.CreateAsync(
                     imageBytes,
                     imageFileName,
                     imageContentType,
                     OriginalText,
                     Flag);
+                savedScanId = saved.Id;
 
                 WeakReferenceMessenger.Default.Send(new RefreshScansMessage());
                 StatusMessage = T("Scan.Status.Saved");
