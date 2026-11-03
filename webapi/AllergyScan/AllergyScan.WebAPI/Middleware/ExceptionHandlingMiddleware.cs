@@ -48,8 +48,8 @@ namespace AllergyScan.WebAPI.Middleware
             }
             else
             {
-                _logger.LogWarning("Request {Method} {Path} failed with status {StatusCode}: {Message}",
-                    context.Request.Method, context.Request.Path, statusCode, exception.Message);
+                _logger.LogWarning("Request {Method} {Path} failed with status {StatusCode} ({ExceptionType}): {Message}",
+                    context.Request.Method, context.Request.Path, statusCode, exception.GetType().Name, exception.Message);
             }
 
             if (context.Response.HasStarted)

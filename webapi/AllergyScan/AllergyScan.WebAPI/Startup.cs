@@ -66,6 +66,7 @@ namespace AllergyScan.WebAPI
                 database.Database.Migrate();
             }
 
+            app.UseMiddleware<RequestLoggingMiddleware>();
             app.UseMiddleware<ExceptionHandlingMiddleware>();
 
             app.UseSwagger();
