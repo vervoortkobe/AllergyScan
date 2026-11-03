@@ -14,6 +14,7 @@ namespace AllergyScan.ViewModels
     {
         private readonly IAllergyDataService allergyDataService;
         private readonly ITranslationService translationService;
+        private readonly IHistoryRescanService historyRescanService;
         private readonly IDialogService dialogService;
 
         private ObservableCollection<Allergy> allergies = new();
@@ -24,10 +25,12 @@ namespace AllergyScan.ViewModels
         public SetupAllergiesViewModel(
             IAllergyDataService allergyDataService,
             ITranslationService translationService,
+            IHistoryRescanService historyRescanService,
             IDialogService dialogService)
         {
             this.allergyDataService = allergyDataService;
             this.translationService = translationService;
+            this.historyRescanService = historyRescanService;
             this.dialogService = dialogService;
 
             AddCommand = new AsyncRelayCommand(AddAsync);
@@ -146,6 +149,9 @@ namespace AllergyScan.ViewModels
                 OnPropertyChanged(nameof(CountText));
                 NewAllergyName = string.Empty;
                 StatusMessage = string.Format(T("Allergies.Added"), LocalizationHelper.AllergenName(allergy.Name));
+                
+                // Re-scan history to update flags with the new allergen
+                await historyRescanService.RescanAllHistoryAsync(Allergies);
             }
             catch (Exception exception)
             {
@@ -187,6 +193,9 @@ namespace AllergyScan.ViewModels
                 Allergies.Add(allergy);
                 OnPropertyChanged(nameof(CountText));
                 StatusMessage = string.Format(T("Allergies.Added"), LocalizationHelper.AllergenName(allergy.Name));
+                
+                // Re-scan history to update flags with the new allergen
+                await historyRescanService.RescanAllHistoryAsync(Allergies);
             }
             catch (Exception exception)
             {
@@ -225,6 +234,9 @@ namespace AllergyScan.ViewModels
                 Allergies.Remove(allergy);
                 OnPropertyChanged(nameof(CountText));
                 StatusMessage = string.Format(T("Allergies.Removed"), LocalizationHelper.AllergenName(allergy.Name));
+                
+                // Re-scan history to update flags with the new allergen list
+                await historyRescanService.RescanAllHistoryAsync(Allergies);
             }
             catch (Exception exception)
             {
@@ -256,6 +268,9 @@ namespace AllergyScan.ViewModels
                     T("Allergies.SeveritySet"),
                     LocalizationHelper.AllergenName(allergy.Name),
                     next.ToSeverityText());
+                
+                // Re-scan history to update flags with the new allergen severity
+                await historyRescanService.RescanAllHistoryAsync(Allergies);
             }
             catch (Exception exception)
             {
@@ -280,6 +295,10 @@ namespace AllergyScan.ViewModels
             try
             {
                 Preferences.Default.Set("HasCompletedInitialSetup", true);
+                
+                // Re-scan history to ensure all scans use the final allergy profile
+                await historyRescanService.RescanAllHistoryAsync(Allergies);
+                
                 WeakReferenceMessenger.Default.Send(new RefreshScansMessage());
 
                 StatusMessage = T("Setup.Allergies.Done");

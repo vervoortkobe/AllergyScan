@@ -34,6 +34,7 @@ namespace AllergyScan
             builder.Services.AddSingleton<IOCRService, OCRService>();
             builder.Services.AddSingleton<ITranslationService, TranslationService>();
             builder.Services.AddSingleton<IAllergenDetectionService, AllergenDetectionService>();
+            builder.Services.AddSingleton<IHistoryRescanService, HistoryRescanService>();
             builder.Services.AddSingleton<IPhotoService, PhotoService>();
             builder.Services.AddSingleton<IDialogService, DialogService>();
             builder.Services.AddSingleton<INavigationService, NavigationService>();

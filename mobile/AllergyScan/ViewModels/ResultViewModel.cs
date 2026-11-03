@@ -103,8 +103,8 @@ namespace AllergyScan.ViewModels
                     IsSafe = false;
                     ResultTitle = T("Result.AllergenDetected");
                     ResultSubtitle = string.Format(T("Result.ContainsDescription"), allergens);
-                    ResultColor = Color.FromArgb("#B42318");
-                    ResultBgColor = Color.FromArgb("#FEE4E2");
+                    ResultColor = Colors.Black;
+                    ResultBgColor = Color.FromArgb("#434343");
                     ResultIcon = "✕";
                     break;
                 case ScanFlag.MayContain:
@@ -113,8 +113,8 @@ namespace AllergyScan.ViewModels
                     IsSafe = false;
                     ResultTitle = T("Result.MayContain");
                     ResultSubtitle = string.Format(T("Result.MayContainDescription"), allergens);
-                    ResultColor = Color.FromArgb("#B8860B");
-                    ResultBgColor = Color.FromArgb("#FFF8DC");
+                    ResultColor = Colors.Black;
+                    ResultBgColor = Color.FromArgb("#666666");
                     ResultIcon = "!";
                     break;
                 case ScanFlag.MayContainTraces:
@@ -123,8 +123,8 @@ namespace AllergyScan.ViewModels
                     IsSafe = false;
                     ResultTitle = T("Result.MayContainTraces");
                     ResultSubtitle = string.Format(T("Result.MayContainTracesDescription"), allergens);
-                    ResultColor = Color.FromArgb("#B8860B");
-                    ResultBgColor = Color.FromArgb("#FFE4B5");
+                    ResultColor = Colors.Black;
+                    ResultBgColor = Color.FromArgb("#999999");
                     ResultIcon = "!";
                     break;
                 default:
@@ -133,7 +133,7 @@ namespace AllergyScan.ViewModels
                     IsSafe = true;
                     ResultTitle = T("Result.NoAllergens");
                     ResultSubtitle = T("Result.NoneDescription");
-                    ResultColor = Color.FromArgb("#067647");
+                    ResultColor = Colors.Black;
                     ResultBgColor = Color.FromArgb("#D1FADF");
                     ResultIcon = "✓";
                     break;
