@@ -80,10 +80,16 @@
                                  Spacing="14"
                                  Margin="0,8,0,0">
 
-                <Border BackgroundColor="{Binding FlagBackgroundColor}"
-                        StrokeThickness="0"
-                        StrokeShape="RoundRectangle 12"
-                        Padding="16">
+            <Border BackgroundColor="{Binding FlagBackgroundColor}"
+                    StrokeThickness="0"
+                    StrokeShape="RoundRectangle 12"
+                    Padding="16">
+                <Border.Shadow>
+                    <Shadow Brush="Black"
+                            Offset="0,2"
+                            Radius="6"
+                            Opacity="0.10" />
+                </Border.Shadow>
                     <VerticalStackLayout Spacing="4">
                         <Label Text="{Binding FlagTitle}"
                                FontSize="18"

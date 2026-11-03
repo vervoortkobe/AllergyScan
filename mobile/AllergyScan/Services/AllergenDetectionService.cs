@@ -34,12 +34,12 @@ namespace AllergyScan.Services
     {
         private static readonly string[] MayContainPhrases = new[]
         {
-            "may contain", "may contains", "contains traces", "traces of",
-            "kan bevatten", "kan sporen bevatten", "bevat sporen", "sporen van",
-            "peut contenir", "traces de",
-            "kann enthalten", "kann spuren enthalten", "spuren von",
+            "may contain", "may contains", "could contain", "might contain", "may contain traces", "contains traces", "traces of",
+            "kan bevatten", "kan sporen bevatten", "bevat sporen", "sporen van", "zou kunnen bevatten",
+            "peut contenir", "peut-etre contenir", "traces de",
+            "kann enthalten", "kann spuren enthalten", "spuren von", "enthält spuren",
             "puede contener", "puede contener trazas", "trazas de",
-            "puo contenere", "tracce di"
+            "puo contenere", "potrebbe contenere", "tracce di"
         };
 
         private static readonly string[] TraceIndicators = new[]
@@ -154,9 +154,7 @@ namespace AllergyScan.Services
                 return ScanFlag.NoAllergen;
             }
 
-            var hasMayContain = false;
-            var hasTraces = false;
-            var hasPlain = false;
+            var maxFlag = ScanFlag.NoAllergen;
 
             foreach (var pos in matches)
             {
@@ -170,49 +168,63 @@ namespace AllergyScan.Services
 
                 var lastBoundary = Math.Max(
                     backward.LastIndexOf('.'),
-                    Math.Max(backward.LastIndexOf(';'), backward.LastIndexOf('\n')));
+                    Math.Max(backward.LastIndexOf(';'), Math.Max(backward.LastIndexOf('\n'), backward.LastIndexOf(':'))));
                 var backContext = lastBoundary >= 0
                     ? backward.Substring(lastBoundary + 1)
                     : backward;
 
-                // Dutch "kan ... bevatten" puts the verb after the allergen list.
-                var dutchMayContain = backContext.Contains("kan", StringComparison.OrdinalIgnoreCase)
-                    && forward.Contains("bevatten", StringComparison.OrdinalIgnoreCase);
+                var contextWindow = normalizedText.Substring(Math.Max(0, pos - 120), Math.Min(240, normalizedText.Length - Math.Max(0, pos - 120)));
 
+                // Dutch "kan ... bevatten" puts the verb after the allergen list.
+                var dutchMayContain = (backContext.Contains("kan", StringComparison.OrdinalIgnoreCase)
+                    || forward.Contains("kan", StringComparison.OrdinalIgnoreCase)
+                    || contextWindow.Contains("kan", StringComparison.OrdinalIgnoreCase))
+                    && (backContext.Contains("bevatten", StringComparison.OrdinalIgnoreCase)
+                    || forward.Contains("bevatten", StringComparison.OrdinalIgnoreCase)
+                    || contextWindow.Contains("bevatten", StringComparison.OrdinalIgnoreCase));
+
+                var frenchMayContain = (backContext.Contains("peut", StringComparison.OrdinalIgnoreCase)
+                    || forward.Contains("peut", StringComparison.OrdinalIgnoreCase)
+                    || contextWindow.Contains("peut", StringComparison.OrdinalIgnoreCase))
+                    && contextWindow.Contains("contenir", StringComparison.OrdinalIgnoreCase);
+
+                var germanMayContain = (backContext.Contains("kann", StringComparison.OrdinalIgnoreCase)
+                    || forward.Contains("kann", StringComparison.OrdinalIgnoreCase)
+                    || contextWindow.Contains("kann", StringComparison.OrdinalIgnoreCase))
+                    && (contextWindow.Contains("enthalten", StringComparison.OrdinalIgnoreCase)
+                    || contextWindow.Contains("spuren", StringComparison.OrdinalIgnoreCase));
+
+                var spanishMayContain = (backContext.Contains("puede", StringComparison.OrdinalIgnoreCase)
+                    || forward.Contains("puede", StringComparison.OrdinalIgnoreCase)
+                    || contextWindow.Contains("puede", StringComparison.OrdinalIgnoreCase))
+                    && contextWindow.Contains("contener", StringComparison.OrdinalIgnoreCase);
                 var matchedPhrase = MayContainPhrases.FirstOrDefault(p =>
                     backContext.Contains(p, StringComparison.OrdinalIgnoreCase)
-                    || forward.Contains(p, StringComparison.OrdinalIgnoreCase));
+                    || forward.Contains(p, StringComparison.OrdinalIgnoreCase)
+                    || contextWindow.Contains(p, StringComparison.OrdinalIgnoreCase));
 
-                if (matchedPhrase is not null || dutchMayContain)
+                if (matchedPhrase is not null || dutchMayContain || frenchMayContain || germanMayContain || spanishMayContain)
                 {
-                    hasMayContain = true;
-                    var combined = backContext + " " + forward;
+                    var combined = backContext + " " + forward + " " + contextWindow;
                     if (TraceIndicators.Any(t => combined.Contains(t, StringComparison.OrdinalIgnoreCase))
                         || (matchedPhrase is not null && TraceIndicators.Any(t => matchedPhrase.Contains(t, StringComparison.OrdinalIgnoreCase))))
                     {
-                        hasTraces = true;
+                        if ((int)ScanFlag.MayContainTraces > (int)maxFlag)
+                        {
+                            maxFlag = ScanFlag.MayContainTraces;
+                        }
                     }
-                }
-                else
+                    else if ((int)ScanFlag.MayContain > (int)maxFlag)
+                    {
+                        maxFlag = ScanFlag.MayContain;
+                    }
+                } else if ((int)ScanFlag.Contains > (int)maxFlag)
                 {
-                    hasPlain = true;
+                    maxFlag = ScanFlag.Contains;
                 }
             }
 
-            if (hasTraces)
-            {
-                return ScanFlag.MayContainTraces;
-            }
-            if (hasMayContain)
-            {
-                return ScanFlag.MayContain;
-            }
-            if (hasPlain)
-            {
-                return ScanFlag.Contains;
-            }
-
-            return ScanFlag.NoAllergen;
+            return maxFlag;
         }
 
         private static bool ContainsTerm(string normalizedText, string term)

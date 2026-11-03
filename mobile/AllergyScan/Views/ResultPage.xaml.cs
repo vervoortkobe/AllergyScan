@@ -49,11 +49,12 @@ namespace AllergyScan.Views
         {
             if (int.TryParse(ScanId, out var id) && id > 0)
             {
-                _ = Shell.Current.GoToAsync($"scanDetails?id={id}");
+                _ = Shell.Current.GoToAsync("//scan");
                 return true;
             }
 
-            return base.OnBackButtonPressed();
+            _ = Shell.Current.GoToAsync("//scan");
+            return true;
         }
     }
 }

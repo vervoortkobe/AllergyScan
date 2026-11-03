@@ -94,14 +94,7 @@ namespace AllergyScan.ViewModels
         {
             BackCommand = new AsyncRelayCommand(async () =>
             {
-                if (ScanId > 0)
-                {
-                    await navigationService.NavigateToAsync($"scanDetails?id={ScanId}");
-                }
-                else
-                {
-                    await navigationService.GoBackAsync();
-                }
+                await navigationService.NavigateToAsync("//scan");
             });
         }
 

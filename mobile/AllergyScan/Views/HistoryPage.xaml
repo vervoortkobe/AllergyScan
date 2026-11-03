@@ -23,9 +23,6 @@
                             SelectionChangedCommand="{Binding OpenScanCommand}">
                 <CollectionView.EmptyView>
                     <VerticalStackLayout Padding="30" Spacing="8" VerticalOptions="Center">
-                        <Label Text="{loc:Translate History.Title}"
-                               FontSize="44"
-                               HorizontalOptions="Center" />
                         <Label Text="{loc:Translate History.EmptyTitle}"
                                FontSize="18"
                                FontAttributes="Bold"
@@ -39,11 +36,17 @@
 
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:ScanHistory">
-                        <Border StrokeShape="RoundRectangle 12"
-                                StrokeThickness="1"
-                                Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
-                                Margin="0,0,0,10"
-                                Padding="12">
+                         <Border StrokeShape="RoundRectangle 12"
+                                 StrokeThickness="1"
+                                 Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                                 Margin="0,0,0,10"
+                                 Padding="12">
+                             <Border.Shadow>
+                                 <Shadow Brush="Black"
+                                         Offset="0,2"
+                                         Radius="6"
+                                         Opacity="0.08" />
+                             </Border.Shadow>
                             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
                                 <VerticalStackLayout Spacing="6">
                                     <Border BackgroundColor="{Binding FlagBackgroundColor}"

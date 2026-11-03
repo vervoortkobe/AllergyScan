@@ -458,15 +458,12 @@ namespace AllergyScan.ViewModels
 
                 StatusMessage = T("Scan.Status.Comparing");
                 var allergies = await allergyDataService.GetAllAsync();
-                var contains = detectionService.Detect(text, string.Empty, allergies);
-                var mayContain = detectionService.DetectMayContain(text, string.Empty, allergies);
-                var mayContainTraces = detectionService.DetectMayContainTraces(text, string.Empty, allergies);
+                var allMatches = detectionService.Detect(text, translatedText, allergies);
 
                 OriginalText = text;
                 TranslatedText = translatedText;
                 DetectedLanguage = detected;
 
-                var allMatches = contains.Concat(mayContain).Concat(mayContainTraces);
                 var allMatchesList = allMatches.ToList();
                 HasAllergens = allMatchesList.Count > 0;
                 HasMayContain = allMatchesList.Any(m => m.Flag == ScanFlag.MayContain || m.Flag == ScanFlag.MayContainTraces);
