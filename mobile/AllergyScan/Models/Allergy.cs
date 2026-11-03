@@ -56,13 +56,7 @@ namespace AllergyScan.Models
             }
         }
 
-        public Color FlagTextColor => Flag switch
-        {
-            ScanFlag.Contains => Color.FromArgb("#B42318"),
-            ScanFlag.MayContain => Color.FromArgb("#B54708"),
-            ScanFlag.MayContainTraces => Color.FromArgb("#B8860B"),
-            _ => Color.FromArgb("#6E6E6E")
-        };
+        public Color FlagTextColor => Colors.Black;
 
         public string FlagBadge => Flag switch
         {

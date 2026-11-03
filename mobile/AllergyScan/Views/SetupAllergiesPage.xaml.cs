@@ -135,7 +135,8 @@ namespace AllergyScan.Views
                 {
                     FontSize = 9,
                     VerticalOptions = LayoutOptions.Center,
-                    Margin = new Thickness(6, 0, 0, 0)
+                    Margin = new Thickness(6, 0, 0, 0),
+                    TextColor = Colors.Black
                 };
                 badge.SetBinding(Label.TextProperty, "FlagBadge");
 

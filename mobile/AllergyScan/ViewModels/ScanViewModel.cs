@@ -250,19 +250,13 @@ namespace AllergyScan.ViewModels
             _ => T("Flag.None")
         };
 
-        public Color FlagColor => Flag switch
-        {
-            ScanFlag.Contains => Color.FromArgb("#B42318"),
-            ScanFlag.MayContain => Color.FromArgb("#B8860B"),
-            ScanFlag.MayContainTraces => Color.FromArgb("#F4A460"),
-            _ => Color.FromArgb("#067647")
-        };
+        public Color FlagColor => Colors.Black;
 
         public Color FlagBackgroundColor => Flag switch
         {
             ScanFlag.Contains => Color.FromArgb("#FEE4E2"),
-            ScanFlag.MayContain => Color.FromArgb("#FFF8DC"),
-            ScanFlag.MayContainTraces => Color.FromArgb("#FFE4B5"),
+            ScanFlag.MayContain => Color.FromArgb("#FFE4B5"),
+            ScanFlag.MayContainTraces => Color.FromArgb("#FFF8DC"),
             _ => Color.FromArgb("#D1FADF")
         };
 

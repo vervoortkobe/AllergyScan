@@ -24,10 +24,15 @@ namespace AllergyScan
 
         private void RegisterRoutes()
         {
-            Routing.RegisterRoute("scanDetails", new ServiceRouteFactory<Views.ScanDetailsPage>(serviceProvider));
-            Routing.RegisterRoute("setup", new ServiceRouteFactory<Views.SetupLanguagePage>(serviceProvider));
-            Routing.RegisterRoute("setup-allergies", new ServiceRouteFactory<Views.SetupAllergiesPage>(serviceProvider));
-            Routing.RegisterRoute("result", new ServiceRouteFactory<Views.ResultPage>(serviceProvider));
+            // Only register each route if it doesn't already exist
+            try { Routing.RegisterRoute("scanDetails", new ServiceRouteFactory<Views.ScanDetailsPage>(serviceProvider)); }
+            catch { }
+            try { Routing.RegisterRoute("setup", new ServiceRouteFactory<Views.SetupLanguagePage>(serviceProvider)); }
+            catch { }
+            try { Routing.RegisterRoute("setup-allergies", new ServiceRouteFactory<Views.SetupAllergiesPage>(serviceProvider)); }
+            catch { }
+            try { Routing.RegisterRoute("result", new ServiceRouteFactory<Views.ResultPage>(serviceProvider)); }
+            catch { }
         }
 
         private sealed class ServiceRouteFactory<TPage>(IServiceProvider serviceProvider) : RouteFactory
