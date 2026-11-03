@@ -9,7 +9,7 @@ namespace AllergyScan.BLL.DTO
         [StringLength(100, MinimumLength = 1)]
         public string Name { get; set; } = string.Empty;
 
-        public ScanFlag Flag { get; set; } = ScanFlag.AllergenDetected;
+        public ScanFlag Flag { get; set; } = ScanFlag.Contains;
     }
 
     public sealed class UpdateAllergyRequest

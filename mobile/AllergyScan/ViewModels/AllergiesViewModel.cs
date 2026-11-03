@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using AllergyScan.Localization;
 using AllergyScan.Models;
 using AllergyScan.Services;
 
@@ -34,12 +35,6 @@ namespace AllergyScan.ViewModels
             RemoveAllergyCommand = new AsyncRelayCommand<Allergy>(RemoveAllergyAsync);
             ToggleFlagCommand = new AsyncRelayCommand<Allergy>(ToggleFlagAsync);
         }
-
-        public List<string> CommonSuggestions { get; } = new()
-        {
-            "Milk", "Egg", "Peanut", "Soy", "Gluten", "Wheat", "Fish", "Shellfish",
-            "Tree nut", "Mustard", "Sesame", "Celery"
-        };
 
         public ObservableCollection<Allergy> Allergies
         {
@@ -104,10 +99,12 @@ namespace AllergyScan.ViewModels
 
         public string CountText => Allergies.Count switch
         {
-            0 => "0 allergies in your profile",
-            1 => "1 allergy in your profile",
-            var count => $"{count} allergies in your profile"
+            0 => T("Allergies.Count.Zero"),
+            1 => T("Allergies.Count.One"),
+            var count => string.Format(T("Allergies.Count.Many"), count)
         };
+
+        private static string T(string key) => LocalizationService.Instance[key];
 
         public bool CanAdd => !IsBusy && !string.IsNullOrWhiteSpace(NewAllergyName);
         public bool CanDeleteSelected => !IsBusy && SelectedAllergy is not null;
@@ -125,7 +122,7 @@ namespace AllergyScan.ViewModels
             try
             {
                 IsBusy = true;
-                StatusMessage = "Loading…";
+                StatusMessage = T("Allergies.Loading");
 
                 var result = await allergyDataService.GetAllAsync();
                 Allergies = new ObservableCollection<Allergy>(result.OrderBy(a => a.Name));
@@ -153,12 +150,17 @@ namespace AllergyScan.ViewModels
             IsBusy = true;
             try
             {
-                var allergy = await allergyDataService.CreateAsync(name);
+                var nl = await TranslateAsync(name, "nl");
+                var fr = await TranslateAsync(name, "fr");
+                var de = await TranslateAsync(name, "de");
+                var es = await TranslateAsync(name, "es");
+
+                var allergy = await allergyDataService.CreateAsync(name, nl, fr, de, es);
                 Allergies.Add(allergy);
                 OnPropertyChanged(nameof(CountText));
                 NewAllergyName = string.Empty;
                 SelectedAllergy = allergy;
-                StatusMessage = $"{allergy.Name} added to allergies.";
+                StatusMessage = string.Format(T("Allergies.Added"), LocalizationHelper.AllergenName(allergy.Name));
             }
             catch (Exception exception)
             {
@@ -199,7 +201,7 @@ namespace AllergyScan.ViewModels
                 var allergy = await allergyDataService.CreateAsync(name, nl, fr, de, es);
                 Allergies.Add(allergy);
                 OnPropertyChanged(nameof(CountText));
-                StatusMessage = $"{allergy.Name} added to allergies.";
+                StatusMessage = string.Format(T("Allergies.Added"), LocalizationHelper.AllergenName(allergy.Name));
             }
             catch (Exception exception)
             {
@@ -239,7 +241,7 @@ namespace AllergyScan.ViewModels
                 Allergies.Remove(allergy);
                 OnPropertyChanged(nameof(CountText));
                 SelectedAllergy = null;
-                StatusMessage = $"{allergy.Name} removed from allergies.";
+                StatusMessage = string.Format(T("Allergies.Removed"), LocalizationHelper.AllergenName(allergy.Name));
             }
             catch (Exception exception)
             {
@@ -264,7 +266,7 @@ namespace AllergyScan.ViewModels
                 await allergyDataService.DeleteAsync(allergy.Id);
                 Allergies.Remove(allergy);
                 OnPropertyChanged(nameof(CountText));
-                StatusMessage = $"{allergy.Name} removed from allergies.";
+                StatusMessage = string.Format(T("Allergies.Removed"), LocalizationHelper.AllergenName(allergy.Name));
             }
             catch (Exception exception)
             {
@@ -294,30 +296,23 @@ namespace AllergyScan.ViewModels
             }
 
             IsBusy = true;
+            var previous = allergy.Flag;
             try
             {
-                var next = allergy.Flag switch
-                {
-                    ScanFlag.NoAllergen => ScanFlag.Contains,
-                    ScanFlag.Contains => ScanFlag.MayContain,
-                    ScanFlag.MayContain => ScanFlag.MayContainTraces,
-                    _ => ScanFlag.NoAllergen
-                };
+                var next = previous.NextSeverity();
 
                 allergy.Flag = next;
                 await allergyDataService.UpdateAsync(allergy.Id, allergy.Name, next);
 
-                var text = next switch
-                {
-                    ScanFlag.Contains => "contains",
-                    ScanFlag.MayContain => "may contain",
-                    ScanFlag.MayContainTraces => "may contain traces",
-                    _ => "none"
-                };
-                StatusMessage = $"{allergy.Name} set to {text}.";
+                StatusMessage = string.Format(
+                    T("Allergies.SeveritySet"),
+                    LocalizationHelper.AllergenName(allergy.Name),
+                    next.ToSeverityText());
             }
             catch (Exception exception)
             {
+                // Keep the badge in sync with the server if the update was rejected.
+                allergy.Flag = previous;
                 StatusMessage = exception.Message;
             }
             finally

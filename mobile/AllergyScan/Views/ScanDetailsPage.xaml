@@ -2,9 +2,14 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="AllergyScan.Views.ScanDetailsPage"
+             xmlns:loc="clr-namespace:AllergyScan.Localization"
              xmlns:viewModels="clr-namespace:AllergyScan.ViewModels"
              x:DataType="viewModels:ScanDetailsViewModel"
-             Title="Scan details">
+             Title="{loc:Translate ScanDetails.Title}">
+
+    <ContentPage.Resources>
+        <loc:ScanFlagToTextConverter x:Key="FlagToText" />
+    </ContentPage.Resources>
 
     <ScrollView>
         <VerticalStackLayout Padding="20" Spacing="14">
@@ -33,7 +38,7 @@
                 </VerticalStackLayout>
             </Border>
 
-            <Label Text="Ingredient text"
+            <Label Text="{loc:Translate ScanDetails.IngredientText}"
                    FontAttributes="Bold" />
             <Border StrokeShape="RoundRectangle 12"
                     StrokeThickness="1"
@@ -43,34 +48,34 @@
                         AutoSize="TextChanges"
                         MinimumHeightRequest="120"
                         BackgroundColor="Transparent"
-                        Placeholder="Ingredient text" />
+                        Placeholder="{loc:Translate ScanDetails.IngredientPlaceholder}" />
             </Border>
 
             <Grid ColumnDefinitions="*,Auto">
                 <VerticalStackLayout Spacing="2">
-                    <Label Text="Allergen status"
+                    <Label Text="{loc:Translate ScanDetails.AllergenStatus}"
                            FontAttributes="Bold" />
-                    <Label Text="Select whether the product contains or may contain one of your allergies."
+                    <Label Text="{loc:Translate ScanDetails.AllergenStatusDescription}"
                            FontSize="12"
                            TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
                 </VerticalStackLayout>
                 <Picker Grid.Column="1"
-                        Title="Status"
+                        Title="{loc:Translate ScanDetails.StatusPicker}"
                         ItemsSource="{Binding AvailableFlags}"
                         SelectedItem="{Binding SelectedFlag, Mode=TwoWay}"
                         VerticalOptions="Center"
                         HorizontalOptions="End">
                     <Picker.ItemDisplayBinding>
-                        <Binding Path="." StringFormat="{}{0}" />
+                        <Binding Path="." Converter="{StaticResource FlagToText}" />
                     </Picker.ItemDisplayBinding>
                 </Picker>
             </Grid>
 
-            <Button Text="Save changes"
+            <Button Text="{loc:Translate ScanDetails.Save}"
                     Command="{Binding SaveCommand}"
                     IsEnabled="{Binding CanSave}" />
 
-            <Button Text="Delete scan"
+            <Button Text="{loc:Translate ScanDetails.Delete}"
                     Command="{Binding DeleteCommand}"
                     IsEnabled="{Binding CanDelete}"
                     BackgroundColor="{StaticResource Gray600}" />

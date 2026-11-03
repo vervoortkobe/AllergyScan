@@ -37,7 +37,7 @@ namespace AllergyScan.Services
             var request = new AllergyRequest
             {
                 Name = name,
-                Flag = ScanFlag.NoAllergen,
+                Flag = ScanFlag.Contains,
                 TranslationNl = nl,
                 TranslationFr = fr,
                 TranslationDe = de,

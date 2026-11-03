@@ -5,9 +5,17 @@ namespace AllergyScan.Views
 {
     public class SetupLanguagePage : ContentPage
     {
+        private readonly SetupLanguageViewModel viewModel;
+
         public SetupLanguagePage(SetupLanguageViewModel viewModel)
         {
+            this.viewModel = viewModel;
             BindingContext = viewModel;
+
+            // Setup is a one-way wizard: hide the navigation bar and tab bar so the
+            // user cannot skip a step or leave the setup early.
+            Shell.SetNavBarIsVisible(this, false);
+            Shell.SetTabBarIsVisible(this, false);
 
             var resources = Application.Current.Resources;
 
@@ -69,6 +77,18 @@ namespace AllergyScan.Views
             };
 
             Content = new ScrollView { Content = content };
+        }
+
+        protected override async void OnAppearing()
+        {
+            base.OnAppearing();
+            await viewModel.InitializeAsync();
+        }
+
+        protected override bool OnBackButtonPressed()
+        {
+            // Do not allow the hardware back button to skip the setup.
+            return true;
         }
     }
 }

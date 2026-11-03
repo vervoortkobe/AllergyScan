@@ -3,6 +3,7 @@ using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using AllergyScan.Localization;
 using AllergyScan.Messages;
 using AllergyScan.Models;
 using AllergyScan.Services;
@@ -12,6 +13,7 @@ namespace AllergyScan.ViewModels
     public class SettingsViewModel : ObservableObject
     {
         private readonly ILanguageDataService languageDataService;
+        private readonly ILocalizationService localizationService;
         private readonly IDialogService dialogService;
 
         private List<Language> languages = new();
@@ -22,9 +24,11 @@ namespace AllergyScan.ViewModels
 
         public SettingsViewModel(
             ILanguageDataService languageDataService,
+            ILocalizationService localizationService,
             IDialogService dialogService)
         {
             this.languageDataService = languageDataService;
+            this.localizationService = localizationService;
             this.dialogService = dialogService;
 
             SaveCommand = new AsyncRelayCommand(SaveAsync);
@@ -69,8 +73,8 @@ namespace AllergyScan.ViewModels
         }
 
         public string CurrentLanguageText => CurrentLanguage is null
-            ? "Not loaded"
-            : CurrentLanguage.DisplayName;
+            ? T("Settings.NotLoaded")
+            : CurrentLanguage.LocalizedDisplayName;
 
         public bool IsBusy
         {
@@ -96,6 +100,8 @@ namespace AllergyScan.ViewModels
 
         public ICommand SaveCommand { get; }
         public ICommand RefreshCommand { get; }
+
+        private static string T(string key) => LocalizationService.Instance[key];
 
         public async Task InitializeAsync()
         {
@@ -129,18 +135,26 @@ namespace AllergyScan.ViewModels
             try
             {
                 CurrentLanguage = await languageDataService.SetCurrentAsync(SelectedLanguage.Code);
+                localizationService.SetLanguage(CurrentLanguage.Code);
                 WeakReferenceMessenger.Default.Send(new LanguageChangedMessage(CurrentLanguage));
                 Preferences.Default.Set("LanguageConfigured", true);
                 Preferences.Default.Set("HasCompletedInitialSetup", true);
-                StatusMessage = $"Language changed to {CurrentLanguage.Name}";
+                StatusMessage = string.Format(T("Settings.Changed"), CurrentLanguage.LocalizedDisplayName);
             }
             catch (Exception exception)
             {
                 StatusMessage = exception.Message;
+                return;
             }
             finally
             {
                 IsBusy = false;
+            }
+
+            // Rebuild the shell so every page (and the tab titles) uses the new language.
+            if (Application.Current is App app)
+            {
+                app.ReloadShell("//settings");
             }
         }
     }

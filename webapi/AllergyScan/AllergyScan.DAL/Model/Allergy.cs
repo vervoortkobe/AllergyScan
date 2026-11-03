@@ -7,7 +7,7 @@ namespace AllergyScan.DAL
         public string Name { get; set; } = string.Empty;
 
         /// <summary>Whether the user wants to avoid products that contain or may contain this allergen.</summary>
-        public ScanFlag Flag { get; set; } = ScanFlag.AllergenDetected;
+        public ScanFlag Flag { get; set; } = ScanFlag.Contains;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }

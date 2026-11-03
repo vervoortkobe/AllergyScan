@@ -50,7 +50,16 @@ namespace AllergyScan.Services
                     continue;
                 }
 
-                var searchTerms = AllergenCatalog.GetSearchTerms(allergy.Name);
+                var searchTerms = AllergenCatalog.GetSearchTerms(allergy.Name)
+                    .Concat(new[]
+                    {
+                        allergy.TranslationNl,
+                        allergy.TranslationFr,
+                        allergy.TranslationDe,
+                        allergy.TranslationEs
+                    })
+                    .Where(t => !string.IsNullOrWhiteSpace(t))
+                    .ToArray();
 
                 if (searchTerms.Any(term => haystacks.Any(text => ContainsTerm(text, term))))
                 {

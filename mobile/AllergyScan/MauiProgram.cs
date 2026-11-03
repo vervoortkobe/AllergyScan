@@ -1,3 +1,4 @@
+using AllergyScan.Localization;
 using AllergyScan.Services;
 using AllergyScan.ViewModels;
 using Microsoft.Extensions.Configuration;
@@ -21,7 +22,10 @@ namespace AllergyScan
             builder.Services.AddSingleton<IConfiguration>(AppConfig.Configuration);
 
             // Shell
-            builder.Services.AddSingleton<AppShell>();
+            builder.Services.AddTransient<AppShell>();
+
+            // Localization
+            builder.Services.AddSingleton<ILocalizationService>(_ => LocalizationService.Instance);
 
             // Services
             builder.Services.AddSingleton<IAllergyDataService, AllergyDataService>();

@@ -1,3 +1,4 @@
+using AllergyScan.Localization;
 using AllergyScan.Messages;
 using AllergyScan.Models;
 using AllergyScan.Services;
@@ -33,8 +34,8 @@ namespace AllergyScan.ViewModels
         private bool hasMayContain;
         private bool hasImage;
         private bool isBusy;
-        private string statusMessage = "Take or choose a photo of an ingredients list.";
-        private string currentLanguageName = "Loading…";
+        private string statusMessage = string.Empty;
+        private string currentLanguageName = string.Empty;
         private string currentLanguageCode = "en";
         private ScanFlag flag;
 
@@ -56,6 +57,9 @@ namespace AllergyScan.ViewModels
             this.scanDataService = scanDataService;
             this.photoService = photoService;
             this.dialogService = dialogService;
+
+            StatusMessage = T("Scan.Status.Ready");
+            CurrentLanguageName = T("Common.Loading");
 
             TakePhotoCommand = new AsyncRelayCommand(TakePhotoAsync);
             PickPhotoCommand = new AsyncRelayCommand(PickPhotoAsync);
@@ -232,18 +236,18 @@ namespace AllergyScan.ViewModels
 
         public bool HasTranslatedText => !string.IsNullOrWhiteSpace(TranslatedText);
 
-        public string TranslationTargetText => $"Translate to: {CurrentLanguageName}";
+        public string TranslationTargetText => string.Format(T("Scan.TranslateTo"), CurrentLanguageName);
 
         public string DetectedLanguageText => string.IsNullOrWhiteSpace(DetectedLanguage)
             ? string.Empty
-            : $"Detected language: {DetectedLanguage.ToUpperInvariant()}";
+            : string.Format(T("Scan.DetectedLanguage"), DetectedLanguage.ToUpperInvariant());
 
         public string FlagTitle => Flag switch
         {
-            ScanFlag.Contains => "⚠ Allergen detected",
-            ScanFlag.MayContain => "⚠ May contain allergen",
-            ScanFlag.MayContainTraces => "⚠ May contain traces",
-            _ => "✓ No allergens detected"
+            ScanFlag.Contains => T("Flag.Contains"),
+            ScanFlag.MayContain => T("Flag.MayContain"),
+            ScanFlag.MayContainTraces => T("Flag.MayContainTraces"),
+            _ => T("Flag.None")
         };
 
         public Color FlagColor => Flag switch
@@ -264,16 +268,19 @@ namespace AllergyScan.ViewModels
 
         public string FlagDescription => Flag switch
         {
-            ScanFlag.Contains => $"This product contains: {DetectedAllergens}",
-            ScanFlag.MayContain => $"This product may contain: {DetectedAllergens}",
-            ScanFlag.MayContainTraces => $"This product may contain traces of: {DetectedAllergens}",
-            _ => "None of your allergies were found in the ingredient text."
+            ScanFlag.Contains => string.Format(T("Flag.ContainsDescription"), DetectedAllergens),
+            ScanFlag.MayContain => string.Format(T("Flag.MayContainDescription"), DetectedAllergens),
+            ScanFlag.MayContainTraces => string.Format(T("Flag.MayContainTracesDescription"), DetectedAllergens),
+            _ => T("Flag.NoneDescription")
         };
+
+        private static string T(string key) => LocalizationService.Instance[key];
 
         public void Receive(LanguageChangedMessage message)
         {
             CurrentLanguageCode = message.Value.Code;
-            CurrentLanguageName = message.Value.Name;
+            CurrentLanguageName = LocalizationHelper.LanguageName(message.Value.Code, message.Value.Name);
+            OnPropertyChanged(nameof(TranslationTargetText));
         }
 
         public async Task InitializeAsync()
@@ -282,11 +289,11 @@ namespace AllergyScan.ViewModels
             {
                 var language = await languageDataService.GetCurrentAsync();
                 CurrentLanguageCode = language.Code;
-                CurrentLanguageName = language.Name;
+                CurrentLanguageName = LocalizationHelper.LanguageName(language.Code, language.Name);
             }
             catch (Exception)
             {
-                CurrentLanguageName = "English (API offline)";
+                CurrentLanguageName = T("Language.Offline");
                 CurrentLanguageCode = "en";
             }
         }
@@ -301,18 +308,18 @@ namespace AllergyScan.ViewModels
             catch (FeatureNotSupportedException)
             {
                 await dialogService.ShowAlertAsync(
-                    "Camera not available",
-                    "This device does not support taking photos. Choose a photo from your gallery instead.");
+                    T("Scan.Dialog.CameraUnavailable.Title"),
+                    T("Scan.Dialog.CameraUnavailable.Message"));
             }
             catch (PermissionException)
             {
                 await dialogService.ShowAlertAsync(
-                    "Permission needed",
-                    "Allow camera access to photograph an ingredients list.");
+                    T("Scan.Dialog.Permission.Title"),
+                    T("Scan.Dialog.CameraPermission.Message"));
             }
             catch (Exception exception)
             {
-                await dialogService.ShowAlertAsync("Could not take photo", exception.Message);
+                await dialogService.ShowAlertAsync(T("Scan.Dialog.TakePhotoFailed.Title"), exception.Message);
             }
         }
 
@@ -326,12 +333,12 @@ namespace AllergyScan.ViewModels
             catch (PermissionException)
             {
                 await dialogService.ShowAlertAsync(
-                    "Permission needed",
-                    "Allow photo access to choose an ingredients list from your gallery.");
+                    T("Scan.Dialog.Permission.Title"),
+                    T("Scan.Dialog.PhotoPermission.Message"));
             }
             catch (Exception exception)
             {
-                await dialogService.ShowAlertAsync("Could not open photos", exception.Message);
+                await dialogService.ShowAlertAsync(T("Scan.Dialog.PickPhotoFailed.Title"), exception.Message);
             }
         }
 
@@ -349,7 +356,7 @@ namespace AllergyScan.ViewModels
             PreviewImage = ImageSource.FromStream(() => new MemoryStream(photo.Data));
             HasImage = true;
             ClearResult();
-            StatusMessage = "Photo ready. Tap “Scan ingredients” to read and translate it.";
+            StatusMessage = T("Scan.Status.PhotoReady");
         }
 
         private async Task ScanAsync()
@@ -361,7 +368,7 @@ namespace AllergyScan.ViewModels
 
             IsBusy = true;
             ClearResult();
-            StatusMessage = "Reading the ingredients with Azure Computer Vision…";
+            StatusMessage = T("Scan.Status.Reading");
 
             try
             {
@@ -371,14 +378,14 @@ namespace AllergyScan.ViewModels
 
                 if (string.IsNullOrWhiteSpace(text))
                 {
-                    StatusMessage = "No text was found in the photo.";
+                    StatusMessage = T("Scan.Status.NoText");
                     await dialogService.ShowAlertAsync(
-                        "No text found",
-                        "Computer Vision could not read any text. Try a sharper photo with the ingredients list clearly visible.");
+                        T("Scan.Dialog.NoText.Title"),
+                        T("Scan.Dialog.NoText.Message"));
                     return;
                 }
 
-                StatusMessage = $"Translating to {CurrentLanguageName}…";
+                StatusMessage = string.Format(T("Scan.Status.Translating"), CurrentLanguageName);
                 var translation = await translationService.TranslateAsync(text, CurrentLanguageCode);
                 var detected = translation.DetectedLanguage ?? CurrentLanguageCode;
                 var needsTranslation = !string.Equals(detected, CurrentLanguageCode, StringComparison.OrdinalIgnoreCase);
@@ -386,10 +393,10 @@ namespace AllergyScan.ViewModels
                 var translatedText = needsTranslation ? translation.Text : text;
 
                 StatusMessage = needsTranslation
-                    ? $"Translated to {CurrentLanguageName}."
-                    : $"Already in {CurrentLanguageName}, skipping translation.";
+                    ? string.Format(T("Scan.Status.Translated"), CurrentLanguageName)
+                    : string.Format(T("Scan.Status.AlreadyInLanguage"), CurrentLanguageName);
 
-                StatusMessage = "Comparing the ingredients with your allergy profile…";
+                StatusMessage = T("Scan.Status.Comparing");
                 var allergies = await allergyDataService.GetAllAsync();
                 var contains = detectionService.Detect(text, translatedText, allergies);
                 var mayContain = detectionService.DetectMayContain(text, translatedText, allergies);
@@ -408,9 +415,13 @@ namespace AllergyScan.ViewModels
                     : ScanFlag.NoAllergen;
 
                 Flag = maxFlag;
-                DetectedAllergens = string.Join(", ", allMatchesList.Select(m => m.Allergy.Name).Distinct(StringComparer.OrdinalIgnoreCase));
+                DetectedAllergens = string.Join(
+                    ", ",
+                    allMatchesList
+                        .Select(m => LocalizationHelper.AllergenName(m.Allergy.Name))
+                        .Distinct(StringComparer.OrdinalIgnoreCase));
                 HasResult = true;
-                StatusMessage = "Saving the scan to your history…";
+                StatusMessage = T("Scan.Status.Saving");
                 await SaveAsync();
 
                 await Shell.Current.GoToAsync($"result?flag={(int)Flag}&allergens={Uri.EscapeDataString(DetectedAllergens ?? string.Empty)}");
@@ -418,12 +429,12 @@ namespace AllergyScan.ViewModels
             catch (ApiException exception)
             {
                 StatusMessage = exception.Message;
-                await dialogService.ShowAlertAsync("Scan failed", exception.Message);
+                await dialogService.ShowAlertAsync(T("Scan.Dialog.ScanFailed.Title"), exception.Message);
             }
             catch (Exception exception)
             {
-                StatusMessage = "The scan failed.";
-                await dialogService.ShowAlertAsync("Scan failed", exception.Message);
+                StatusMessage = T("Scan.Status.Failed");
+                await dialogService.ShowAlertAsync(T("Scan.Dialog.ScanFailed.Title"), exception.Message);
             }
             finally
             {
@@ -439,7 +450,7 @@ namespace AllergyScan.ViewModels
             }
 
             IsBusy = true;
-            StatusMessage = "Saving the scan to your history…";
+            StatusMessage = T("Scan.Status.Saving");
 
             try
             {
@@ -451,17 +462,17 @@ namespace AllergyScan.ViewModels
                     Flag);
 
                 WeakReferenceMessenger.Default.Send(new RefreshScansMessage());
-                StatusMessage = "Saved to your history.";
+                StatusMessage = T("Scan.Status.Saved");
             }
             catch (ApiException exception)
             {
                 StatusMessage = exception.Message;
-                await dialogService.ShowAlertAsync("Could not save scan", exception.Message);
+                await dialogService.ShowAlertAsync(T("Scan.Dialog.SaveFailed.Title"), exception.Message);
             }
             catch (Exception exception)
             {
-                StatusMessage = "Could not save the scan.";
-                await dialogService.ShowAlertAsync("Could not save scan", exception.Message);
+                StatusMessage = T("Scan.Status.SaveFailed");
+                await dialogService.ShowAlertAsync(T("Scan.Dialog.SaveFailed.Title"), exception.Message);
             }
             finally
             {
@@ -475,7 +486,7 @@ namespace AllergyScan.ViewModels
             PreviewImage = null;
             HasImage = false;
             ClearResult();
-            StatusMessage = "Take or choose a photo of an ingredients list.";
+            StatusMessage = T("Scan.Status.Ready");
         }
 
         private void ClearResult()

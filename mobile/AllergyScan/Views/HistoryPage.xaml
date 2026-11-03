@@ -2,14 +2,15 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="AllergyScan.Views.HistoryPage"
+             xmlns:loc="clr-namespace:AllergyScan.Localization"
              xmlns:models="clr-namespace:AllergyScan.Models"
              xmlns:viewModels="clr-namespace:AllergyScan.ViewModels"
              x:DataType="viewModels:HistoryViewModel"
-             Title="History">
+             Title="{loc:Translate History.Title}">
 
     <Grid Padding="16" RowDefinitions="Auto,*,Auto,Auto" RowSpacing="10">
 
-        <Label Text="Scan History"
+        <Label Text="{loc:Translate History.Heading}"
                FontSize="24"
                FontAttributes="Bold" />
 
@@ -22,14 +23,14 @@
                             SelectionChangedCommand="{Binding OpenScanCommand}">
                 <CollectionView.EmptyView>
                     <VerticalStackLayout Padding="30" Spacing="8" VerticalOptions="Center">
-                        <Label Text="History"
+                        <Label Text="{loc:Translate History.Title}"
                                FontSize="44"
                                HorizontalOptions="Center" />
-                        <Label Text="No scans yet"
+                        <Label Text="{loc:Translate History.EmptyTitle}"
                                FontSize="18"
                                FontAttributes="Bold"
                                HorizontalOptions="Center" />
-                        <Label Text="Take or choose a photo on the Scan tab to check ingredients."
+                        <Label Text="{loc:Translate History.EmptyHint}"
                                FontSize="13"
                                HorizontalTextAlignment="Center"
                                TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
@@ -84,7 +85,7 @@
         </RefreshView>
 
         <Button Grid.Row="2"
-                Text="Clear history"
+                Text="{loc:Translate History.Clear}"
                 Command="{Binding ClearHistoryCommand}"
                 IsVisible="{Binding HasScans}"
                 BackgroundColor="{StaticResource Gray600}" />

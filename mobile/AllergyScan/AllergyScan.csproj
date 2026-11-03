@@ -67,4 +67,9 @@
     <EmbeddedResource Include="Properties\appsettings.json" LogicalName="AllergyScan.appsettings.json" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Remove="Localization\translations.json" />
+    <EmbeddedResource Include="Localization\translations.json" LogicalName="AllergyScan.Localization.translations.json" />
+  </ItemGroup>
+
 </Project>

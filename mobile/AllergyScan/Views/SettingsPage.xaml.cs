@@ -1,3 +1,4 @@
+using AllergyScan.Localization;
 using AllergyScan.ViewModels;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Controls.Shapes;
@@ -6,29 +7,33 @@ namespace AllergyScan.Views
 {
     public class SettingsPage : ContentPage
     {
+        private readonly SettingsViewModel viewModel;
+
         public SettingsPage(SettingsViewModel viewModel)
         {
+            this.viewModel = viewModel;
             BindingContext = viewModel;
 
             var resources = Application.Current.Resources;
+            var localization = LocalizationService.Instance;
 
             var title = new Label
             {
-                Text = "Settings",
+                Text = localization["Settings.Title"],
                 FontSize = 22,
                 FontAttributes = FontAttributes.Bold
             };
 
             var languageLabel = new Label
             {
-                Text = "Translation language",
+                Text = localization["Settings.LanguageLabel"],
                 FontSize = 16,
                 FontAttributes = FontAttributes.Bold
             };
 
             var description = new Label
             {
-                Text = "The app translates every ingredients list to this language before checking your allergies.",
+                Text = localization["Settings.Description"],
                 FontSize = 13,
                 TextColor = (Color)resources["Gray500"]
             };
@@ -38,14 +43,16 @@ namespace AllergyScan.Views
                 FontAttributes = FontAttributes.Bold,
                 TextColor = (Color)resources["Primary"]
             };
-            currentLabel.SetBinding(Label.TextProperty, new Binding("CurrentLanguageText", stringFormat: "Current: {0}"));
+            currentLabel.SetBinding(
+                Label.TextProperty,
+                new Binding("CurrentLanguageText", stringFormat: localization["Settings.Current"]));
 
-            var picker = new Picker { Title = "Choose a language" };
+            var picker = new Picker { Title = localization["Settings.ChooseLanguage"] };
             picker.SetBinding(Picker.ItemsSourceProperty, "Languages");
-            picker.ItemDisplayBinding = new Binding("DisplayName");
+            picker.ItemDisplayBinding = new Binding("LocalizedDisplayName");
             picker.SetBinding(Picker.SelectedItemProperty, "SelectedLanguage");
 
-            var saveBtn = new Button { Text = "Save language", FontSize = 14 };
+            var saveBtn = new Button { Text = localization["Settings.Save"], FontSize = 14 };
             saveBtn.SetBinding(Button.CommandProperty, "SaveCommand");
             saveBtn.SetBinding(Button.IsEnabledProperty, "CanSave");
 
@@ -75,6 +82,12 @@ namespace AllergyScan.Views
             };
 
             Content = new ScrollView { Content = content };
+        }
+
+        protected override async void OnAppearing()
+        {
+            base.OnAppearing();
+            await viewModel.InitializeAsync();
         }
     }
 }

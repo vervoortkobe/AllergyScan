@@ -16,8 +16,8 @@ namespace AllergyScan.DAL.Configurations
 
             builder.Property(a => a.Flag)
                 .IsRequired()
-                .HasDefaultValue(ScanFlag.AllergenDetected)
-                .HasSentinel(ScanFlag.AllergenDetected);
+                .HasDefaultValue(ScanFlag.Contains)
+                .HasSentinel(ScanFlag.Contains);
 
             builder.HasIndex(a => a.Name).IsUnique();
         }

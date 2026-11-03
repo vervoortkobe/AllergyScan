@@ -1,3 +1,4 @@
+using AllergyScan.Localization;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace AllergyScan.Models
@@ -42,6 +43,13 @@ namespace AllergyScan.Models
         public string DisplayName => string.IsNullOrWhiteSpace(Code)
             ? Name
             : $"{Name} ({Code.ToUpperInvariant()})";
+
+        /// <summary>
+        /// The language name in the language the app currently uses, for example
+        /// "Frans" on the Dutch settings screen. The setup screen keeps using the
+        /// English <see cref="DisplayName"/> on purpose.
+        /// </summary>
+        public string LocalizedDisplayName => LocalizationHelper.LanguageName(Code, DisplayName);
 
         public override string ToString() => DisplayName;
     }

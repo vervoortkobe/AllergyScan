@@ -2,6 +2,7 @@ using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using AllergyScan.Localization;
 using AllergyScan.Messages;
 using AllergyScan.Models;
 using AllergyScan.Services;
@@ -122,15 +123,19 @@ namespace AllergyScan.ViewModels
 
         public string FlagTitle => SelectedFlag switch
         {
-            ScanFlag.Contains => "⚠ Allergen detected",
-            ScanFlag.MayContain => "⚠ May contain allergen",
-            _ => "✓ No allergens detected"
+            ScanFlag.Contains => T("Flag.Contains"),
+            ScanFlag.MayContain => T("Flag.MayContain"),
+            ScanFlag.MayContainTraces => T("Flag.MayContainTraces"),
+            _ => T("Flag.None")
         };
+
+        private static string T(string key) => LocalizationService.Instance[key];
 
         public Color FlagColor => SelectedFlag switch
         {
             ScanFlag.Contains => Color.FromArgb("#B42318"),
             ScanFlag.MayContain => Color.FromArgb("#B8860B"),
+            ScanFlag.MayContainTraces => Color.FromArgb("#F4A460"),
             _ => Color.FromArgb("#067647")
         };
 
@@ -138,11 +143,12 @@ namespace AllergyScan.ViewModels
         {
             ScanFlag.Contains => Color.FromArgb("#FEE4E2"),
             ScanFlag.MayContain => Color.FromArgb("#FFF8DC"),
+            ScanFlag.MayContainTraces => Color.FromArgb("#FFE4B5"),
             _ => Color.FromArgb("#D1FADF")
         };
 
         public IReadOnlyList<ScanFlag> AvailableFlags { get; } =
-            new[] { ScanFlag.NoAllergen, ScanFlag.Contains, ScanFlag.MayContain };
+            new[] { ScanFlag.NoAllergen, ScanFlag.Contains, ScanFlag.MayContain, ScanFlag.MayContainTraces };
 
         public ICommand SaveCommand { get; }
 
@@ -169,7 +175,7 @@ namespace AllergyScan.ViewModels
 
             if (scanId is null)
             {
-                StatusMessage = "No scan was selected.";
+                StatusMessage = T("ScanDetails.NoScan");
                 return;
             }
 
@@ -179,7 +185,7 @@ namespace AllergyScan.ViewModels
             }
 
             IsBusy = true;
-            StatusMessage = "Loading scan…";
+            StatusMessage = T("ScanDetails.Loading");
 
             try
             {
@@ -191,8 +197,8 @@ namespace AllergyScan.ViewModels
             }
             catch (Exception exception)
             {
-                StatusMessage = "Could not load the scan.";
-                await dialogService.ShowAlertAsync("Could not load scan", exception.Message);
+                StatusMessage = T("ScanDetails.LoadFailed");
+                await dialogService.ShowAlertAsync(T("ScanDetails.Dialog.LoadFailed.Title"), exception.Message);
             }
             finally
             {
@@ -208,7 +214,7 @@ namespace AllergyScan.ViewModels
             }
 
             IsBusy = true;
-            StatusMessage = "Saving changes…";
+            StatusMessage = T("ScanDetails.Saving");
 
             try
             {
@@ -224,12 +230,12 @@ namespace AllergyScan.ViewModels
             catch (ApiException exception)
             {
                 StatusMessage = exception.Message;
-                await dialogService.ShowAlertAsync("Could not save scan", exception.Message);
+                await dialogService.ShowAlertAsync(T("ScanDetails.Dialog.SaveFailed.Title"), exception.Message);
             }
             catch (Exception exception)
             {
-                StatusMessage = "Could not save the scan.";
-                await dialogService.ShowAlertAsync("Could not save scan", exception.Message);
+                StatusMessage = T("ScanDetails.SaveFailed");
+                await dialogService.ShowAlertAsync(T("ScanDetails.Dialog.SaveFailed.Title"), exception.Message);
             }
             finally
             {
@@ -245,10 +251,10 @@ namespace AllergyScan.ViewModels
             }
 
             var confirmed = await dialogService.ConfirmAsync(
-                "Delete scan",
-                "Remove this scan from your history?",
-                "Delete",
-                "Cancel");
+                T("ScanDetails.DeleteConfirm.Title"),
+                T("ScanDetails.DeleteConfirm.Message"),
+                T("Common.Delete"),
+                T("Common.Cancel"));
 
             if (!confirmed)
             {
@@ -266,12 +272,12 @@ namespace AllergyScan.ViewModels
             catch (ApiException exception)
             {
                 StatusMessage = exception.Message;
-                await dialogService.ShowAlertAsync("Could not delete scan", exception.Message);
+                await dialogService.ShowAlertAsync(T("ScanDetails.Dialog.DeleteFailed.Title"), exception.Message);
             }
             catch (Exception exception)
             {
-                StatusMessage = "Could not delete the scan.";
-                await dialogService.ShowAlertAsync("Could not delete scan", exception.Message);
+                StatusMessage = T("ScanDetails.DeleteFailed");
+                await dialogService.ShowAlertAsync(T("ScanDetails.Dialog.DeleteFailed.Title"), exception.Message);
             }
             finally
             {

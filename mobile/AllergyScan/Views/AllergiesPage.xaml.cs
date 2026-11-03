@@ -1,3 +1,4 @@
+using AllergyScan.Localization;
 using AllergyScan.Models;
 using AllergyScan.ViewModels;
 using Microsoft.Maui.Controls;
@@ -15,24 +16,25 @@ namespace AllergyScan.Views
             BindingContext = viewModel;
 
             var resources = Application.Current.Resources;
+            var localization = LocalizationService.Instance;
 
             var title = new Label
             {
-                Text = "Your allergy profile",
+                Text = localization["Allergies.Heading"],
                 FontSize = 22,
                 FontAttributes = FontAttributes.Bold
             };
 
             var description = new Label
             {
-                Text = "Add every ingredient you must avoid. The scanner compares each product with this list.",
+                Text = localization["Allergies.Description"],
                 FontSize = 13,
                 TextColor = (Color)resources["Gray500"]
             };
 
             var suggestionsLabel = new Label
             {
-                Text = "Common allergens",
+                Text = localization["Allergies.Common"],
                 FontSize = 15,
                 FontAttributes = FontAttributes.Bold,
                 Margin = new Thickness(0, 8, 0, 4)
@@ -43,11 +45,11 @@ namespace AllergyScan.Views
                 Orientation = StackOrientation.Horizontal,
                 Spacing = 6
             };
-            foreach (var suggestion in new[] { "Milk", "Egg", "Peanut", "Soy", "Gluten", "Wheat", "Fish", "Shellfish", "Tree nut", "Mustard", "Sesame", "Celery" })
+            foreach (var suggestion in AllergenSuggestions.All)
             {
                 var btn = new Button
                 {
-                    Text = suggestion,
+                    Text = localization[suggestion.Key],
                     FontSize = 12,
                     Padding = new Thickness(10, 6),
                     CornerRadius = 16,
@@ -55,16 +57,16 @@ namespace AllergyScan.Views
                     BackgroundColor = (Color)resources["Primary"],
                     TextColor = Colors.White
                 };
-                var s = suggestion;
+                var s = suggestion.Name;
                 btn.Clicked += (_, _) => viewModel.AddSuggestion(s);
                 commonButtons.Children.Add(btn);
             }
 
-            var entry = new Entry { Placeholder = "For example: milk, egg, peanut" };
+            var entry = new Entry { Placeholder = localization["Allergies.Placeholder"] };
             entry.SetBinding(Entry.TextProperty, "NewAllergyName");
             entry.SetBinding(Entry.ReturnCommandProperty, "AddCommand");
 
-            var addBtn = new Button { Text = "Add", FontSize = 12 };
+            var addBtn = new Button { Text = localization["Allergies.Add"], FontSize = 12 };
             addBtn.SetBinding(Button.CommandProperty, "AddCommand");
             addBtn.SetBinding(Button.IsEnabledProperty, "CanAdd");
 
@@ -172,6 +174,12 @@ namespace AllergyScan.Views
             };
 
             Content = new ScrollView { Content = content };
+        }
+
+        protected override async void OnAppearing()
+        {
+            base.OnAppearing();
+            await viewModel.InitializeAsync();
         }
     }
 }

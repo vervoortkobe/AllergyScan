@@ -1,3 +1,4 @@
+using AllergyScan.Localization;
 using AllergyScan.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -87,6 +88,8 @@ namespace AllergyScan.ViewModels
             BackCommand = new AsyncRelayCommand(navigationService.GoBackAsync);
         }
 
+        private static string T(string key) => LocalizationService.Instance[key];
+
         public void ApplyResult(ScanFlag flag, string allergens)
         {
             Flag = flag;
@@ -98,8 +101,8 @@ namespace AllergyScan.ViewModels
                     IsAllergen = true;
                     IsMayContain = false;
                     IsSafe = false;
-                    ResultTitle = "Allergen detected";
-                    ResultSubtitle = $"This product contains: {allergens}";
+                    ResultTitle = T("Result.AllergenDetected");
+                    ResultSubtitle = string.Format(T("Result.ContainsDescription"), allergens);
                     ResultColor = Color.FromArgb("#B42318");
                     ResultBgColor = Color.FromArgb("#FEE4E2");
                     ResultIcon = "✕";
@@ -108,18 +111,28 @@ namespace AllergyScan.ViewModels
                     IsAllergen = false;
                     IsMayContain = true;
                     IsSafe = false;
-                    ResultTitle = "May contain allergen";
-                    ResultSubtitle = $"This product may contain: {allergens}";
+                    ResultTitle = T("Result.MayContain");
+                    ResultSubtitle = string.Format(T("Result.MayContainDescription"), allergens);
                     ResultColor = Color.FromArgb("#B8860B");
                     ResultBgColor = Color.FromArgb("#FFF8DC");
+                    ResultIcon = "!";
+                    break;
+                case ScanFlag.MayContainTraces:
+                    IsAllergen = false;
+                    IsMayContain = true;
+                    IsSafe = false;
+                    ResultTitle = T("Result.MayContainTraces");
+                    ResultSubtitle = string.Format(T("Result.MayContainTracesDescription"), allergens);
+                    ResultColor = Color.FromArgb("#B8860B");
+                    ResultBgColor = Color.FromArgb("#FFE4B5");
                     ResultIcon = "!";
                     break;
                 default:
                     IsAllergen = false;
                     IsMayContain = false;
                     IsSafe = true;
-                    ResultTitle = "No allergens detected";
-                    ResultSubtitle = "None of your allergies were found.";
+                    ResultTitle = T("Result.NoAllergens");
+                    ResultSubtitle = T("Result.NoneDescription");
                     ResultColor = Color.FromArgb("#067647");
                     ResultBgColor = Color.FromArgb("#D1FADF");
                     ResultIcon = "✓";

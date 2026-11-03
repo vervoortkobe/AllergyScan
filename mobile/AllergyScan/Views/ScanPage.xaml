@@ -2,19 +2,20 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="AllergyScan.Views.ScanPage"
+             xmlns:loc="clr-namespace:AllergyScan.Localization"
              xmlns:viewModels="clr-namespace:AllergyScan.ViewModels"
              x:DataType="viewModels:ScanViewModel"
-             Title="Scan">
+             Title="{loc:Translate Scan.Title}">
 
     <ScrollView>
         <VerticalStackLayout Padding="20" Spacing="16">
 
-            <Label Text="Check a product before you eat it"
+            <Label Text="{loc:Translate Scan.Heading}"
                    FontSize="26"
                    FontAttributes="Bold"
                    SemanticProperties.HeadingLevel="Level1" />
 
-            <Label Text="Photograph the ingredients list. AllergyScan reads it with Azure AI, translates it to your language and compares it with your allergy profile."
+            <Label Text="{loc:Translate Scan.Description}"
                    FontSize="14"
                    TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
 
@@ -38,11 +39,11 @@
                                HeightRequest="56"
                                Aspect="AspectFit"
                                HorizontalOptions="Center"
-                               SemanticProperties.Description="Camera" />
-                        <Label Text="No photo yet"
+                               SemanticProperties.Description="{loc:Translate Scan.Camera}" />
+                        <Label Text="{loc:Translate Scan.NoPhoto}"
                                FontAttributes="Bold"
                                HorizontalOptions="Center" />
-                        <Label Text="Take a photo or choose one from your gallery."
+                        <Label Text="{loc:Translate Scan.NoPhotoHint}"
                                FontSize="12"
                                TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}"
                                HorizontalTextAlignment="Center" />
@@ -51,17 +52,17 @@
             </Border>
 
             <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-                <Button Text="Take photo"
+                <Button Text="{loc:Translate Scan.TakePhoto}"
                         Command="{Binding TakePhotoCommand}" />
                 <Button Grid.Column="1"
-                        Text="Choose photo"
+                        Text="{loc:Translate Scan.ChoosePhoto}"
                         Command="{Binding PickPhotoCommand}" />
             </Grid>
 
             <Label Text="{Binding TranslationTargetText}"
                    FontAttributes="Bold" />
 
-            <Button Text="Scan ingredients"
+            <Button Text="{loc:Translate Scan.ScanIngredients}"
                     Command="{Binding ScanCommand}"
                     IsEnabled="{Binding CanScan}" />
 
@@ -93,7 +94,7 @@
                     </VerticalStackLayout>
                 </Border>
 
-                <Label Text="Original ingredient text"
+                <Label Text="{loc:Translate Scan.OriginalText}"
                        FontAttributes="Bold" />
                 <Border StrokeShape="RoundRectangle 12"
                         StrokeThickness="1"
@@ -103,7 +104,7 @@
                             AutoSize="TextChanges"
                             MinimumHeightRequest="100"
                             BackgroundColor="Transparent"
-                            Placeholder="The OCR text will appear here." />
+                            Placeholder="{loc:Translate Scan.OriginalPlaceholder}" />
                 </Border>
 
                 <Label Text="{Binding DetectedLanguageText}"
@@ -111,7 +112,7 @@
                        IsVisible="{Binding HasTranslatedText}"
                        TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
 
-                <Label Text="Translated text"
+                <Label Text="{loc:Translate Scan.TranslatedText}"
                        FontAttributes="Bold"
                        IsVisible="{Binding HasTranslatedText}" />
                 <Border IsVisible="{Binding HasTranslatedText}"
@@ -124,11 +125,11 @@
                            FontSize="13" />
                 </Border>
 
-                <Button Text="Save to history"
+                <Button Text="{loc:Translate Scan.SaveToHistory}"
                         Command="{Binding SaveCommand}"
                         IsEnabled="{Binding CanSave}" />
 
-                <Button Text="Scan another product"
+                <Button Text="{loc:Translate Scan.ScanAnother}"
                         Command="{Binding ResetCommand}"
                         BackgroundColor="Transparent"
                         TextColor="{StaticResource Primary}" />

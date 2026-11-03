@@ -1,3 +1,4 @@
+using AllergyScan.Localization;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace AllergyScan.Models
@@ -91,18 +92,18 @@ namespace AllergyScan.Models
 
         public string FlagText => Flag switch
         {
-            ScanFlag.Contains => "Contains allergen",
-            ScanFlag.MayContain => "May contain allergen",
-            ScanFlag.MayContainTraces => "May contain traces",
-            _ => "No allergens detected"
+            ScanFlag.Contains => LocalizationService.Instance["Flag.Badge.Contains"],
+            ScanFlag.MayContain => LocalizationService.Instance["Flag.Badge.MayContain"],
+            ScanFlag.MayContainTraces => LocalizationService.Instance["Flag.Badge.MayContainTraces"],
+            _ => LocalizationService.Instance["Flag.None"]
         };
 
         public string FlagTitle => Flag switch
         {
-            ScanFlag.Contains => "⚠ Allergen detected",
-            ScanFlag.MayContain => "⚠ May contain allergen",
-            ScanFlag.MayContainTraces => "⚠ May contain traces",
-            _ => "✓ No allergens detected"
+            ScanFlag.Contains => LocalizationService.Instance["Flag.Contains"],
+            ScanFlag.MayContain => LocalizationService.Instance["Flag.MayContain"],
+            ScanFlag.MayContainTraces => LocalizationService.Instance["Flag.MayContainTraces"],
+            _ => LocalizationService.Instance["Flag.None"]
         };
 
         public Color FlagColor => Flag switch

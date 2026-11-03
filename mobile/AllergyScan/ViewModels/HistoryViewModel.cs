@@ -3,6 +3,7 @@ using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using AllergyScan.Localization;
 using AllergyScan.Messages;
 using AllergyScan.Models;
 using AllergyScan.Services;
@@ -99,6 +100,8 @@ namespace AllergyScan.ViewModels
 
         public bool HasStatusMessage => !string.IsNullOrWhiteSpace(StatusMessage);
 
+        private static string T(string key) => LocalizationService.Instance[key];
+
         public ICommand RefreshCommand { get; }
         public ICommand LoadMoreCommand { get; }
         public ICommand OpenScanCommand { get; }
@@ -127,7 +130,7 @@ namespace AllergyScan.ViewModels
 
             IsBusy = true;
             IsRefreshing = true;
-            StatusMessage = "Loading history...";
+            StatusMessage = T("History.Loading");
 
             try
             {
@@ -195,10 +198,10 @@ namespace AllergyScan.ViewModels
                 return;
 
             var confirmed = await dialogService.ConfirmAsync(
-                "Clear History",
-                "Delete all scan history? This cannot be undone.",
-                "Delete All",
-                "Cancel");
+                T("History.ClearConfirm.Title"),
+                T("History.ClearConfirm.Message"),
+                T("History.ClearConfirm.Accept"),
+                T("Common.Cancel"));
 
             if (!confirmed)
                 return;
@@ -213,7 +216,7 @@ namespace AllergyScan.ViewModels
                 hasMore = false;
                 OnPropertyChanged(nameof(IsEmpty));
                 OnPropertyChanged(nameof(HasScans));
-                StatusMessage = "History cleared.";
+                StatusMessage = T("History.Cleared");
             }
             catch (Exception exception)
             {

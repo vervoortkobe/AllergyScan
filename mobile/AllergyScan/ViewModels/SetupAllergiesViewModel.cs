@@ -3,6 +3,7 @@ using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using AllergyScan.Localization;
 using AllergyScan.Messages;
 using AllergyScan.Models;
 using AllergyScan.Services;
@@ -12,19 +13,25 @@ namespace AllergyScan.ViewModels
     public class SetupAllergiesViewModel : ObservableObject
     {
         private readonly IAllergyDataService allergyDataService;
+        private readonly ITranslationService translationService;
         private readonly IDialogService dialogService;
 
         private ObservableCollection<Allergy> allergies = new();
+        private string newAllergyName = string.Empty;
         private bool isBusy;
         private string statusMessage = string.Empty;
 
         public SetupAllergiesViewModel(
             IAllergyDataService allergyDataService,
+            ITranslationService translationService,
             IDialogService dialogService)
         {
             this.allergyDataService = allergyDataService;
+            this.translationService = translationService;
             this.dialogService = dialogService;
 
+            AddCommand = new AsyncRelayCommand(AddAsync);
+            AddSuggestionCommand = new RelayCommand<string>(AddSuggestion);
             RemoveAllergyCommand = new AsyncRelayCommand<Allergy>(RemoveAllergyAsync);
             ToggleFlagCommand = new AsyncRelayCommand<Allergy>(ToggleFlagAsync);
             CompleteSetupCommand = new AsyncRelayCommand(CompleteSetupAsync);
@@ -42,12 +49,26 @@ namespace AllergyScan.ViewModels
             }
         }
 
+        public string NewAllergyName
+        {
+            get => newAllergyName;
+            set
+            {
+                if (SetProperty(ref newAllergyName, value))
+                {
+                    OnPropertyChanged(nameof(CanAdd));
+                }
+            }
+        }
+
         public string CountText => Allergies.Count switch
         {
-            0 => "No allergies added yet",
-            1 => "1 allergy",
-            var count => $"{count} allergies"
+            0 => T("Setup.Allergies.Count.Zero"),
+            1 => T("Setup.Allergies.Count.One"),
+            var count => string.Format(T("Setup.Allergies.Count.Many"), count)
         };
+
+        private static string T(string key) => LocalizationService.Instance[key];
 
         public bool IsBusy
         {
@@ -56,6 +77,7 @@ namespace AllergyScan.ViewModels
             {
                 if (SetProperty(ref isBusy, value))
                 {
+                    OnPropertyChanged(nameof(CanAdd));
                     OnPropertyChanged(nameof(CanComplete));
                 }
             }
@@ -75,8 +97,11 @@ namespace AllergyScan.ViewModels
 
         public bool HasStatusMessage => !string.IsNullOrWhiteSpace(StatusMessage);
 
+        public bool CanAdd => !IsBusy && !string.IsNullOrWhiteSpace(NewAllergyName);
         public bool CanComplete => !IsBusy;
 
+        public ICommand AddCommand { get; }
+        public ICommand AddSuggestionCommand { get; }
         public IAsyncRelayCommand<Allergy> RemoveAllergyCommand { get; }
         public IAsyncRelayCommand<Allergy> ToggleFlagCommand { get; }
         public IAsyncRelayCommand CompleteSetupCommand { get; }
@@ -100,6 +125,92 @@ namespace AllergyScan.ViewModels
             }
         }
 
+        private async Task AddAsync()
+        {
+            var name = NewAllergyName.Trim();
+            if (string.IsNullOrEmpty(name) || IsBusy)
+            {
+                return;
+            }
+
+            IsBusy = true;
+            try
+            {
+                var nl = await TranslateAsync(name, "nl");
+                var fr = await TranslateAsync(name, "fr");
+                var de = await TranslateAsync(name, "de");
+                var es = await TranslateAsync(name, "es");
+
+                var allergy = await allergyDataService.CreateAsync(name, nl, fr, de, es);
+                Allergies.Add(allergy);
+                OnPropertyChanged(nameof(CountText));
+                NewAllergyName = string.Empty;
+                StatusMessage = string.Format(T("Allergies.Added"), LocalizationHelper.AllergenName(allergy.Name));
+            }
+            catch (Exception exception)
+            {
+                StatusMessage = exception.Message;
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
+        public void AddSuggestion(string? suggestion)
+        {
+            if (string.IsNullOrWhiteSpace(suggestion) || IsBusy)
+            {
+                return;
+            }
+
+            var trimmed = suggestion.Trim();
+            if (Allergies.Any(a => string.Equals(a.Name, trimmed, StringComparison.OrdinalIgnoreCase)))
+            {
+                return;
+            }
+
+            AddNewAllergyAsync(trimmed);
+        }
+
+        private async void AddNewAllergyAsync(string name)
+        {
+            IsBusy = true;
+            try
+            {
+                var nl = await TranslateAsync(name, "nl");
+                var fr = await TranslateAsync(name, "fr");
+                var de = await TranslateAsync(name, "de");
+                var es = await TranslateAsync(name, "es");
+
+                var allergy = await allergyDataService.CreateAsync(name, nl, fr, de, es);
+                Allergies.Add(allergy);
+                OnPropertyChanged(nameof(CountText));
+                StatusMessage = string.Format(T("Allergies.Added"), LocalizationHelper.AllergenName(allergy.Name));
+            }
+            catch (Exception exception)
+            {
+                StatusMessage = exception.Message;
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
+        private async Task<string> TranslateAsync(string text, string toLanguage)
+        {
+            try
+            {
+                var result = await translationService.TranslateAsync(text, toLanguage);
+                return result.Text;
+            }
+            catch
+            {
+                return text;
+            }
+        }
+
         private async Task RemoveAllergyAsync(Allergy? allergy)
         {
             if (allergy is null || IsBusy)
@@ -113,7 +224,7 @@ namespace AllergyScan.ViewModels
                 await allergyDataService.DeleteAsync(allergy.Id);
                 Allergies.Remove(allergy);
                 OnPropertyChanged(nameof(CountText));
-                StatusMessage = $"{allergy.Name} removed from allergies.";
+                StatusMessage = string.Format(T("Allergies.Removed"), LocalizationHelper.AllergenName(allergy.Name));
             }
             catch (Exception exception)
             {
@@ -133,30 +244,23 @@ namespace AllergyScan.ViewModels
             }
 
             IsBusy = true;
+            var previous = allergy.Flag;
             try
             {
-                var next = allergy.Flag switch
-                {
-                    ScanFlag.NoAllergen => ScanFlag.Contains,
-                    ScanFlag.Contains => ScanFlag.MayContain,
-                    ScanFlag.MayContain => ScanFlag.MayContainTraces,
-                    _ => ScanFlag.NoAllergen
-                };
+                var next = previous.NextSeverity();
 
                 allergy.Flag = next;
                 await allergyDataService.UpdateAsync(allergy.Id, allergy.Name, next);
 
-                var text = next switch
-                {
-                    ScanFlag.Contains => "contains",
-                    ScanFlag.MayContain => "may contain",
-                    ScanFlag.MayContainTraces => "may contain traces",
-                    _ => "none"
-                };
-                StatusMessage = $"{allergy.Name} set to {text}.";
+                StatusMessage = string.Format(
+                    T("Allergies.SeveritySet"),
+                    LocalizationHelper.AllergenName(allergy.Name),
+                    next.ToSeverityText());
             }
             catch (Exception exception)
             {
+                // Keep the badge in sync with the server if the update was rejected.
+                allergy.Flag = previous;
                 StatusMessage = exception.Message;
             }
             finally
@@ -178,13 +282,23 @@ namespace AllergyScan.ViewModels
                 Preferences.Default.Set("HasCompletedInitialSetup", true);
                 WeakReferenceMessenger.Default.Send(new RefreshScansMessage());
 
-                StatusMessage = "Setup complete!";
-                await Shell.Current.GoToAsync("//scan");
+                StatusMessage = T("Setup.Allergies.Done");
+
+                // Rebuild the shell so the tab titles use the language that was
+                // picked during setup.
+                if (Application.Current is App app)
+                {
+                    app.ReloadShell("//scan");
+                }
+                else
+                {
+                    await Shell.Current.GoToAsync("//scan");
+                }
             }
             catch (Exception exception)
             {
                 StatusMessage = exception.Message;
-                await dialogService.ShowAlertAsync("Setup Error", exception.Message);
+                await dialogService.ShowAlertAsync(T("Setup.Allergies.ErrorTitle"), exception.Message);
             }
             finally
             {
