@@ -1,57 +1,176 @@
 # AllergyScan
 
-.NET MAUI app with a WebAPI backend for the AI.NET course.
+.NET MAUI app with a WebAPI backend for the AI.NET course. AllergyScan helps people with food allergies check the ingredients of a product by photographing the label, using Azure AI Computer Vision for OCR, Azure Translator for language conversion, and a local allergen detection service to flag allergens.
 
-AllergyScan helps people with food allergies check the ingredients of a product.
-The user photographs the ingredients list, Azure AI Computer Vision reads the text
-(OCR), Azure AI Translator translates it to the user's language, and the app compares
-the result with the user's personal allergy profile and shows a clear warning.
+## Requirements & Implementation
 
-- `webapi/AllergyScan` — ASP.NET Core 10 backend with SQLite, allergies, language selection and scan history. See [the backend README](webapi/AllergyScan/README.md).
-- `mobile/AllergyScan` — .NET MAUI client (MVVM) that runs the OCR, translation and allergen check. See [the app README](mobile/AllergyScan/README.md).
-- `docker-compose.yml` — runs the backend on <http://localhost:8080>.
+| Requirement | Implementation |
+|-------------|----------------|
+| **.NET MAUI + MVVM Community Toolkit** | All pages use ViewModels inheriting from `ObservableObject`/`ObservableRecipient` with `[RelayCommand]` from CommunityToolkit.Mvvm. Code-behind files are minimal/empty (only InitializeComponent and QueryAttributes). |
+| **Azure AI Model Integration** | `IOCRService` uses Azure Computer Vision for OCR. `ITranslationService` uses Azure AI Translator. Multiple AI services are used as required. API keys configured in MAUI appsettings. |
+| **Attractive, user-friendly interface** | White + dark green theme, shadows on cards/borders, custom converters for flag colors, responsive layouts, setup flow, clear "eatable/non-eatable" result screens. |
+| **WebAPI in .NET, read AND write data** | Full CRUD on Allergies, Scans, and Language. All endpoints accept/return data. POST/PUT/DELETE operations implemented. |
+| **At least 2 tables connected by one-to-many relationship** | **Language** (1) → **UserSettings** (N): A language can be used by user settings; UserSettings references Language via `LanguageId`. Both tables are used by the app (Languages API to list/change language, UserSettings persisted). |
+| **Layered Architecture, Repository Design Pattern, async/await** | **Layers**: `AllergyScan.WebAPI` (Controllers/Startup), `AllergyScan.BLL` (Services/DTOs/Interfaces), `AllergyScan.DAL` (Repositories/Contexts/Configurations/Models). **Repositories**: `IRepository<T>`, `AllergyRepository`, `ScanRepository`, `LanguageRepository`. **Unit of Work**: `IUnitOfWork` with `CompleteAsync()`. All DB/API calls async. |
+| **Host API and DB locally with Ngrok** | API runs locally via `dotnet run` or Docker Compose (`docker-compose.yml`). SQLite DB stored locally. Expose via `ngrok http <port>` as documented. |
+| **Multiple pages, Navigation Service, at least 2 messages** | 8+ pages (Scan, Result, ScanDetails, History, Allergies, Settings, SetupLanguage, SetupAllergies). `INavigationService` implemented. Messages: `RefreshScansMessage`, `LanguageChangedMessage` via WeakReferenceMessenger. |
+| **Creative (not just SafariSnap clone)** | Allergy-specific detection with 4 severity levels, Dutch "kan bevatten/kan sporen bevatten" parsing with sentence-aware lookback, multi-language may-contain phrases, allergy profile management, severity cycling, custom flag UI per state. |
+| **Naming conventions and coding guidelines** | PascalCase for classes/methods/properties, interfaces prefixed with I, DTOs suffixed appropriately, proper folder structure (ViewModels/Views/Services/Models), async methods suffixed with Async. |
+
+## Database Schema (One-to-Many Relationship)
+
+```
+Language (1) ──< UserSettings (N)
+    │              │
+    Id             Id, LanguageId (FK), ...
+    Code           singleton (Id=1) in single-user app
+    Name
+    UserSettings (collection)
+```
+
+- **Language** has `Id`, `Code` (e.g., "en", "nl"), `Name`
+- **UserSettings** references `LanguageId` with FK constraint, restrict delete
+- One Language can be referenced by UserSettings (1:N). Both tables are used by the app (fetching languages list and current language setting).
 
 ## Architecture
 
+### Mobile App (.NET MAUI + MVVM Community Toolkit)
+
 ```
-MAUI app                                     WebAPI (SQLite)
---------                                     ---------------
 camera/gallery -> photo
         |
 Azure Computer Vision (OCR) -> text
         |
 Azure Translator -> translated text
         |
-allergen check against the profile ->
-        |
-   flag (NoAllergen | AllergenDetected | MayContain)
+Local allergen detection -> flag (NoAllergen | Contains | MayContain | MayContainTraces)
         |
         +--- POST /api/scans ---------------> scans + image
         +--- GET/PUT /api/allergies --------> allergy profile
         +--- GET/PUT /api/languages --------> selected language
 ```
 
-The backend only stores the user's allergies, the selected language and the scan
-history. All AI work happens inside the MAUI app, so the Azure keys never leave the
-device.
+### WebAPI (.NET 8 / ASP.NET Core)
 
-## Quick start
+Layered structure with Repository + Unit of Work pattern.
 
-1. Start the backend:
+## Key Features
 
-   ```bash
-   docker compose up --build
-   ```
+- **OCR**: Images >3.8MB downscaled to max 1600px and re-encoded as JPEG @85% before Azure OCR.
+- **Azure AI Integration**: Computer Vision (OCR) + Translator with proper error handling.
+- **Allergen Detection**: 4-state severity with correct precedence - "may contain" never downgraded to "contains". Context-aware detection with sentence boundaries.
+- **Multi-language Support**: EN/NL/FR/DE/ES with translations and allergen name translations.
+- **Navigation**: Fixed post-scan flow - goes to Result page, back button returns to Scan tab without loops.
 
-2. Run the MAUI app:
+## Stack
 
-   ```bash
-   cd mobile/AllergyScan
-   dotnet build -t:Run -f net10.0-windows10.0.19041.0
-   ```
+- **Mobile**: .NET MAUI, MVVM Community Toolkit, CommunityToolkit.Mvvm.Messaging, SkiaSharp
+- **WebAPI**: ASP.NET Core 10, EF Core 10 + SQLite, Repository Pattern, Unit of Work, Swagger/OpenAPI
+- **AI**: Azure Computer Vision, Azure AI Translator
+- **Database**: SQLite (local), Docker Compose
 
-   The app talks to <http://localhost:8080> on Windows and to
-   <http://10.0.2.2:8080> on the Android emulator. See
-   [mobile/AllergyScan/README.md](mobile/AllergyScan/README.md) to change the URL.
+## Project Structure
 
-Swagger: <http://localhost:8080/swagger>
+```
+AllergyScan/
+├─ webapi/AllergyScan/
+│  ├─ AllergyScan.BLL/      # Services, DTOs, Interfaces, Exceptions
+│  ├─ AllergyScan.DAL/      # Repositories, Contexts, Configurations, Models, Migrations
+│  └─ AllergyScan.WebAPI/   # Controllers, Startup, Middleware
+├─ mobile/AllergyScan/      # MAUI app (ViewModels, Views, Services, Models)
+├─ docker-compose.yml
+└─ README.md
+```
+
+## API Documentation (Swagger)
+
+When running the WebAPI locally, **Swagger UI** is available at:
+- **Local dev**: `http://localhost:5236/swagger`
+- **Docker**: `http://localhost:8080/swagger`
+
+Swagger provides interactive API documentation for all endpoints (Allergies, Languages, Scans) with request/response schemas and the ability to test endpoints directly.
+
+## API Endpoints
+
+### Allergies
+| Method | Route | Description |
+|---|---|---|
+| `GET` | `/api/allergies` | List all allergies |
+| `GET` | `/api/allergies/{id}` | Get allergy by id |
+| `POST` | `/api/allergies` | Add allergy |
+| `PUT` | `/api/allergies/{id}` | Update allergy |
+| `DELETE` | `/api/allergies/{id}` | Delete allergy |
+
+### Languages
+| Method | Route | Description |
+|---|---|---|
+| `GET` | `/api/languages` | List supported languages |
+| `GET` | `/api/languages/current` | Get current language |
+| `PUT` | `/api/languages/current` | Set current language |
+
+### Scans
+| Method | Route | Description |
+|---|---|---|
+| `POST` | `/api/scans` | Store processed scan (multipart/form-data) |
+| `GET` | `/api/scans?page=1&pageSize=20` | Paged history |
+| `GET` | `/api/scans/{id}` | Get scan by id |
+| `GET` | `/api/scans/{id}/image` | Get scan image |
+| `PUT` | `/api/scans/{id}` | Update scan text/flag |
+| `PUT` | `/api/scans/{id}/image` | Replace image |
+| `DELETE` | `/api/scans/{id}` | Delete scan |
+| `DELETE` | `/api/scans` | Clear history |
+
+## Quick Start
+
+### 1. Start the backend (Docker)
+```bash
+docker compose up --build
+```
+API runs on `http://localhost:8080`. Swagger at `http://localhost:8080/swagger`.
+
+### 2. Run locally without Docker
+```bash
+cd webapi/AllergyScan
+dotnet run --project AllergyScan.WebAPI
+```
+API typically runs on `http://localhost:5236`. Swagger at `http://localhost:5236/swagger`.
+
+### 3. Expose with Ngrok (optional)
+```bash
+ngrok http 5236
+```
+Use the provided ngrok URL in your mobile app configuration.
+
+### 4. Run the MAUI app
+```bash
+cd mobile/AllergyScan
+dotnet build -t:Run -f net10.0-windows10.0.19041.0
+```
+- Windows: connects to `http://localhost:8080`
+- Android emulator: connects to `http://10.0.2.2:8080`
+
+## Pages & Navigation
+
+- **ScanPage** — Photo capture/pick → OCR → detection → Result
+- **ResultPage** — Shows eatable/non-eatable status, allergen details
+- **ScanDetailsPage** — View/edit scan, change flag
+- **HistoryPage** — Past scans, refreshes via messages
+- **AllergiesPage** — Manage allergy profile
+- **SettingsPage** — Language selection
+- **SetupLanguagePage** → **SetupAllergiesPage** — First-time setup
+
+## Messages
+- `RefreshScansMessage` — Refresh history after changes
+- `LanguageChangedMessage` — Update UI on language change
+
+## Architecture Compliance
+- **Layered Architecture** ✓ (WebAPI/BLL/DAL)
+- **Repository Pattern** ✓ (`IRepository<T>`, concrete repos)
+- **Unit of Work** ✓ (`IUnitOfWork.CompleteAsync()`)
+- **Async/Await** ✓ throughout
+- **MVVM Community Toolkit** ✓
+- **Read/Write via API** ✓
+- **≥2 tables, 1:N** ✓ (Language ↔ UserSettings)
+- **NavigationService + ≥2 Messages** ✓
+- **Azure AI integrated** ✓
+- **Creative, not SafariSnap clone** ✓
