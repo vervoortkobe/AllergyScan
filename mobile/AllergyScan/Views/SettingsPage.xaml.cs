@@ -4,7 +4,7 @@ using Microsoft.Maui.Controls.Shapes;
 
 namespace AllergyScan.Views
 {
-    public class SettingsPage : ContentPage
+    public partial class SettingsPage : ContentPage
     {
         private readonly SettingsViewModel viewModel;
 

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="AllergyScan.Views.AllergiesPage"
+             xmlns:loc="clr-namespace:AllergyScan.Localization"
+             xmlns:viewModels="clr-namespace:AllergyScan.ViewModels"
+             x:DataType="viewModels:AllergiesViewModel">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="12">
+
+            <Label Text="{loc:Translate Allergies.Heading}"
+                   FontSize="22"
+                   FontAttributes="Bold" />
+
+            <Label Text="{loc:Translate Allergies.Description}"
+                   FontSize="13"
+                   TextColor="{StaticResource Gray500}" />
+
+            <Label Text="{loc:Translate Allergies.Common}"
+                   FontSize="15"
+                   FontAttributes="Bold"
+                   Margin="0,8,0,4" />
+
+            <StackLayout Orientation="Horizontal" Spacing="6">
+                <!-- Allergen suggestion buttons will be generated dynamically -->
+                <!-- This is just a placeholder - the actual buttons are created in the code-behind -->
+            </StackLayout>
+
+            <Border StrokeShape="RoundRectangle 12"
+                    StrokeThickness="1"
+                    Padding="8">
+                <Editor Placeholder="{loc:Translate Allergies.Placeholder}"
+                          BackgroundColor="Transparent"
+                          MinimumHeightRequest="40" />
+            </Border>
+
+            <Button Text="{loc:Translate Allergies.Add}"
+                    FontSize="12"
+                    BackgroundColor="{StaticResource Primary}"
+                    TextColor="White"
+                    IsEnabled="{Binding CanAdd}"
+                    Command="{Binding AddCommand}" />
+
+            <Label FontSize="13"
+                   TextColor="{StaticResource Gray600}"
+                   IsVisible="{Binding HasStatusMessage}"
+                   Text="{Binding StatusMessage}" />
+
+            <Label Text="{Binding CountText}"
+                   FontSize="12"
+                   FontAttributes="Bold"
+                   TextColor="{StaticResource Gray500}" />
+
+            <VerticalStackLayout>
+                <!-- Allergy items will be dynamically added here -->
+                <!-- This is a placeholder for the list of allergies -->
+            </VerticalStackLayout>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

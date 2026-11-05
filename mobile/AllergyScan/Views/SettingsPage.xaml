@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="AllergyScan.Views.SettingsPage"
+             xmlns:loc="clr-namespace:AllergyScan.Localization"
+             xmlns:viewModels="clr-namespace:AllergyScan.ViewModels"
+             x:DataType="viewModels:SettingsViewModel">
+
+    <ContentPage.Resources>
+        <AppThemeBinding Light="{StaticResource Primary}" Dark="{StaticResource Primary}" x:Key="Primary" />
+        <Color x:Key="Gray500">#6E6E6E</Color>
+        <Color x:Key="Gray600">#ACACAC</Color>
+    </ContentPage.Resources>
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="12">
+
+            <Label Text="{loc:Translate Settings.Title}"
+                   FontSize="22"
+                   FontAttributes="Bold" />
+
+            <Border StrokeShape="RoundRectangle 12"
+                    StrokeThickness="1"
+                    Padding="16">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="{loc:Translate Settings.LanguageLabel}"
+                           FontSize="16"
+                           FontAttributes="Bold" />
+
+                    <Label Text="{loc:Translate Settings.Description}"
+                           FontSize="13"
+                           TextColor="{StaticResource Gray500}" />
+
+                    <Label FontAttributes="Bold"
+                           TextColor="{StaticResource Primary}"
+                           Text="{loc:Translate Settings.Current}" />
+
+                    <Picker Title="{loc:Translate Settings.ChooseLanguage}"
+                            ItemsSource="{Binding Languages}"
+                            ItemDisplayBinding="{Binding ItemDisplayBinding}"
+                            SelectedItem="{Binding SelectedLanguage}" />
+
+                    <Button Text="{loc:Translate Settings.Save}"
+                            Command="{Binding SaveCommand}"
+                            IsEnabled="{Binding CanSave}"
+                            BackgroundColor="{StaticResource Primary}"
+                            TextColor="White" />
+
+                    <Label FontSize="13"
+                           TextColor="{StaticResource Gray600}"
+                           IsVisible="{Binding HasStatusMessage}"
+                           Text="{Binding StatusMessage}" />
+                </VerticalStackLayout>
+            </Border>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

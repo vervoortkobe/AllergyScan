@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="AllergyScan.Views.SetupAllergiesPage"
+             xmlns:loc="clr-namespace:AllergyScan.Localization"
+             xmlns:viewModels="clr-namespace:AllergyScan.ViewModels"
+             x:DataType="viewModels:SetupAllergiesViewModel">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="12">
+
+            <Label Text="{loc:Translate Setup.Allergies.Title}"
+                   FontSize="22"
+                   FontAttributes="Bold" />
+
+            <Label Text="{loc:Translate Setup.Allergies.Subtitle}"
+                   FontSize="13"
+                   TextColor="{StaticResource Gray500}" />
+
+            <Label Text="{loc:Translate Setup.Allergies.Complete}"
+                   FontSize="16"
+                   FontAttributes="Bold"
+                   Margin="0,8,0,0}" />
+
+            <Label Text="{Binding CountText}"
+                   FontSize="12"
+                   FontAttributes="Bold"
+                   TextColor="{StaticResource Gray500}"
+                   IsVisible="{Binding HasStatusMessage}" />
+
+            <StackLayout Orientation="Horizontal" Spacing="6" IsVisible="{Binding HasStatusMessage}">
+                <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
+                <Label Text="{Binding StatusMessage}" FontSize="13" TextColor="{StaticResource Gray600}" />
+            </StackLayout>
+
+            <VerticalStackLayout Spacing="8">
+                <Picker Title="{loc:Translate Settings.ChooseLanguage}"
+                        ItemsSource="{Binding Languages}"
+                        ItemDisplayBinding="{Binding ItemDisplayBinding}"
+                        SelectedItem="{Binding SelectedLanguage}" />
+
+                <Button Text="{loc:Translate Setup.Allergies.Complete}"
+                        Command="{Binding CompleteSetupCommand}"
+                        IsEnabled="{Binding CanComplete}"
+                        BackgroundColor="{StaticResource Primary}"
+                        TextColor="White" />
+            </VerticalStackLayout>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
