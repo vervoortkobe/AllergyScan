@@ -1,4 +1,5 @@
 using AllergyScan.Models;
+using AllergyScan.Services;
 using AllergyScan.ViewModels;
 using Microsoft.Maui.Controls;
 
@@ -10,16 +11,18 @@ namespace AllergyScan.Views
     public partial class ResultPage : ContentPage
     {
         private readonly ResultViewModel viewModel;
+        private readonly INavigationService navigationService;
         private bool resultApplied;
 
         public string Flag { get; set; } = string.Empty;
         public string Allergens { get; set; } = string.Empty;
         public string ScanId { get; set; } = string.Empty;
 
-        public ResultPage(ResultViewModel viewModel)
+        public ResultPage(ResultViewModel viewModel, INavigationService navigationService)
         {
             InitializeComponent();
             this.viewModel = viewModel;
+            this.navigationService = navigationService;
             BindingContext = viewModel;
         }
 
@@ -49,11 +52,11 @@ namespace AllergyScan.Views
         {
             if (int.TryParse(ScanId, out var id) && id > 0)
             {
-                _ = Shell.Current.GoToAsync("//scan");
+                _ = navigationService.NavigateToAsync("//scan");
                 return true;
             }
 
-            _ = Shell.Current.GoToAsync("//scan");
+            _ = navigationService.NavigateToAsync("//scan");
             return true;
         }
     }

@@ -8,6 +8,7 @@ using AllergyScan.Services;
 
 namespace AllergyScan.ViewModels
 {
+    /// <summary>View model for managing the allergy profile.</summary>
     public class AllergiesViewModel : ObservableObject
     {
         private readonly IAllergyDataService allergyDataService;

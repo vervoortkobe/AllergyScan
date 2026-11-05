@@ -10,6 +10,7 @@ using AllergyScan.Services;
 
 namespace AllergyScan.ViewModels
 {
+    /// <summary>View model for the scan history page.</summary>
     public class HistoryViewModel : ObservableRecipient, IRecipient<RefreshScansMessage>
     {
         private readonly IScanDataService scanDataService;

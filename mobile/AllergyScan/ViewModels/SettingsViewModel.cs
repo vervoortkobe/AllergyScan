@@ -10,6 +10,7 @@ using AllergyScan.Services;
 
 namespace AllergyScan.ViewModels
 {
+    /// <summary>View model for the settings page.</summary>
     public class SettingsViewModel : ObservableObject
     {
         private readonly ILanguageDataService languageDataService;

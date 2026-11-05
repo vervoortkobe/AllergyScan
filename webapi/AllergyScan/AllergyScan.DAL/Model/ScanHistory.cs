@@ -8,6 +8,7 @@ namespace AllergyScan.DAL
         MayContainTraces = 3
     }
 
+    /// <summary>Represents a stored scan in the database.</summary>
     public class ScanHistory
     {
         public int Id { get; set; }

@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace AllergyScan.Models
 {
+    /// <summary>Represents a stored scan in the mobile app.</summary>
     public class ScanHistory : ObservableObject
     {
         private int id;

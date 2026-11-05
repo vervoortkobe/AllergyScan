@@ -10,12 +10,14 @@ using AllergyScan.Services;
 
 namespace AllergyScan.ViewModels
 {
+    /// <summary>View model for the allergy setup page.</summary>
     public class SetupAllergiesViewModel : ObservableObject
     {
         private readonly IAllergyDataService allergyDataService;
         private readonly ITranslationService translationService;
         private readonly IHistoryRescanService historyRescanService;
         private readonly IDialogService dialogService;
+        private readonly INavigationService navigationService;
 
         private ObservableCollection<Allergy> allergies = new();
         private string newAllergyName = string.Empty;
@@ -26,12 +28,14 @@ namespace AllergyScan.ViewModels
             IAllergyDataService allergyDataService,
             ITranslationService translationService,
             IHistoryRescanService historyRescanService,
-            IDialogService dialogService)
+            IDialogService dialogService,
+            INavigationService navigationService)
         {
             this.allergyDataService = allergyDataService;
             this.translationService = translationService;
             this.historyRescanService = historyRescanService;
             this.dialogService = dialogService;
+            this.navigationService = navigationService;
 
             AddCommand = new AsyncRelayCommand(AddAsync);
             AddSuggestionCommand = new RelayCommand<string>(AddSuggestion);
@@ -311,7 +315,7 @@ namespace AllergyScan.ViewModels
                 }
                 else
                 {
-                    await Shell.Current.GoToAsync("//scan");
+                    await navigationService.NavigateToAsync("//scan");
                 }
             }
             catch (Exception exception)

@@ -5,6 +5,7 @@ using AllergyScan.Models;
 
 namespace AllergyScan.Services
 {
+    /// <summary>Detects allergens and their severity in ingredient text.</summary>
     public interface IAllergenDetectionService
     {
         IReadOnlyList<(Allergy Allergy, ScanFlag Flag)> Detect(

@@ -9,6 +9,7 @@ using AllergyScan.Services;
 
 namespace AllergyScan.ViewModels
 {
+    /// <summary>View model for viewing and editing a single scan.</summary>
     public class ScanDetailsViewModel : ObservableObject
     {
         private readonly IScanDataService scanDataService;

@@ -11,6 +11,7 @@ using SkiaSharp;
 
 namespace AllergyScan.ViewModels
 {
+    /// <summary>View model for the scan page: captures a photo, runs OCR and allergen detection, and saves the result.</summary>
     public class ScanViewModel : ObservableRecipient, IRecipient<LanguageChangedMessage>
     {
         private readonly IOCRService ocrService;
@@ -21,6 +22,7 @@ namespace AllergyScan.ViewModels
         private readonly IScanDataService scanDataService;
         private readonly IPhotoService photoService;
         private readonly IDialogService dialogService;
+        private readonly INavigationService navigationService;
 
         private byte[]? imageBytes;
         private string imageFileName = "scan.jpg";
@@ -48,7 +50,8 @@ namespace AllergyScan.ViewModels
             ILanguageDataService languageDataService,
             IScanDataService scanDataService,
             IPhotoService photoService,
-            IDialogService dialogService)
+            IDialogService dialogService,
+            INavigationService navigationService)
         {
             this.ocrService = ocrService;
             this.translationService = translationService;
@@ -58,6 +61,7 @@ namespace AllergyScan.ViewModels
             this.scanDataService = scanDataService;
             this.photoService = photoService;
             this.dialogService = dialogService;
+            this.navigationService = navigationService;
 
             StatusMessage = T("Scan.Status.Ready");
             CurrentLanguageName = T("Common.Loading");
@@ -482,7 +486,7 @@ namespace AllergyScan.ViewModels
                 StatusMessage = T("Scan.Status.Saving");
                 await SaveAsync();
 
-                await Shell.Current.GoToAsync($"result?flag={(int)Flag}&allergens={Uri.EscapeDataString(DetectedAllergens ?? string.Empty)}&scanId={savedScanId}");
+                await navigationService.NavigateToAsync($"result?flag={(int)Flag}&allergens={Uri.EscapeDataString(DetectedAllergens ?? string.Empty)}&scanId={savedScanId}");
             }
             catch (ApiException exception)
             {

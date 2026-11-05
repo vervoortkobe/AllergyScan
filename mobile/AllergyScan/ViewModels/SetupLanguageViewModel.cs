@@ -10,10 +10,12 @@ using AllergyScan.Services;
 
 namespace AllergyScan.ViewModels
 {
+    /// <summary>View model for the language setup page.</summary>
     public class SetupLanguageViewModel : ObservableObject
     {
         private readonly ILanguageDataService languageDataService;
         private readonly IDialogService dialogService;
+        private readonly INavigationService navigationService;
 
         private List<Language> languages = new();
         private Language? selectedLanguage;
@@ -22,10 +24,12 @@ namespace AllergyScan.ViewModels
 
         public SetupLanguageViewModel(
             ILanguageDataService languageDataService,
-            IDialogService dialogService)
+            IDialogService dialogService,
+            INavigationService navigationService)
         {
             this.languageDataService = languageDataService;
             this.dialogService = dialogService;
+            this.navigationService = navigationService;
 
             NextCommand = new AsyncRelayCommand(NextAsync);
         }
@@ -135,7 +139,7 @@ namespace AllergyScan.ViewModels
                 WeakReferenceMessenger.Default.Send(new LanguageChangedMessage(updated));
                 Preferences.Default.Set("LanguageConfigured", true);
                 StatusMessage = "Language saved";
-                await Shell.Current.GoToAsync("setup-allergies");
+                await navigationService.NavigateToAsync("setup-allergies");
             }
             catch (Exception exception)
             {

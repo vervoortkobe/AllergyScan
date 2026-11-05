@@ -6,6 +6,7 @@ using AllergyScan.Services;
 
 namespace AllergyScan.ViewModels
 {
+    /// <summary>View model for the result page.</summary>
     public class ResultViewModel : ObservableObject
     {
         private int scanId;

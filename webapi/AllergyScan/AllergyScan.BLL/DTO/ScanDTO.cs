@@ -3,8 +3,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace AllergyScan.BLL.DTO
 {
+    /// <summary>Request payload used to store a scan that was already processed by the app.</summary>
     public sealed record CreateScanRequest(
-        Stream? Image,
+        Stream Image,
         string? ImageContentType,
         string? ImageFileName,
         string? Text,

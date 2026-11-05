@@ -8,6 +8,7 @@ using Microsoft.Extensions.Options;
 
 namespace AllergyScan.BLL.Services
 {
+    /// <summary>Implements scan history storage and retrieval.</summary>
     public class ScanService : IScanService
     {
         private static readonly HashSet<string> AllowedImageContentTypes = new(StringComparer.OrdinalIgnoreCase)
@@ -32,20 +33,18 @@ namespace AllergyScan.BLL.Services
             var text = (request.Text ?? string.Empty).Trim();
             EnsureTextIsValid(text);
 
-            byte[]? imageBytes = null;
-            string? imageContentType = null;
-            string? imageFileName = null;
-
-            if (request.Image is not null)
+            if (request.Image is null)
             {
-                (imageBytes, imageContentType) = await ReadImageAsync(
-                    request.Image,
-                    request.ImageContentType,
-                    request.ImageFileName,
-                    cancellationToken);
-
-                imageFileName = SanitizeFileName(request.ImageFileName);
+                throw new BadRequestException("An image is required to upload a scan.");
             }
+
+            var (imageBytes, imageContentType) = await ReadImageAsync(
+                request.Image,
+                request.ImageContentType,
+                request.ImageFileName,
+                cancellationToken);
+
+            var imageFileName = SanitizeFileName(request.ImageFileName);
 
             var scan = new ScanHistory
             {

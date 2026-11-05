@@ -6,8 +6,9 @@ namespace AllergyScan.WebAPI.Models
 {
     public sealed class CreateScanForm
     {
-        /// <summary>Optional photo of the product or ingredients list.</summary>
-        public IFormFile? Image { get; set; }
+        /// <summary>Required photo of the product or ingredients list.</summary>
+        [Required]
+        public IFormFile Image { get; set; } = null!;
 
         /// <summary>Ingredient text produced by the app's OCR provider.</summary>
         [Required]

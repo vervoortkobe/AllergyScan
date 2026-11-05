@@ -2,6 +2,7 @@ using AllergyScan.BLL.DTO;
 
 namespace AllergyScan.BLL.Interfaces
 {
+    /// <summary>Contract for scan history operations.</summary>
     public interface IScanService
     {
         Task<ScanHistoryDTO> CreateAsync(CreateScanRequest request, CancellationToken cancellationToken = default);

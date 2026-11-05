@@ -8,6 +8,7 @@ namespace AllergyScan.WebAPI.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
+    /// <summary>API controller for scan history.</summary>
     public class ScansController : ControllerBase
     {
         private const long MaxUploadBytes = 15 * 1024 * 1024;
@@ -30,12 +31,12 @@ namespace AllergyScan.WebAPI.Controllers
             [FromForm] CreateScanForm form,
             CancellationToken cancellationToken)
         {
-            await using var imageStream = form.Image?.OpenReadStream();
+            await using var imageStream = form.Image.OpenReadStream();
 
             var request = new CreateScanRequest(
                 imageStream,
-                form.Image?.ContentType,
-                form.Image?.FileName,
+                form.Image.ContentType,
+                form.Image.FileName,
                 form.Text,
                 form.Flag!.Value);
 
