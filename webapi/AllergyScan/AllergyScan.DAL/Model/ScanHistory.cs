@@ -1,4 +1,6 @@
-namespace AllergyScan.DAL
+using System;
+
+namespace AllergyScan.DAL.Model
 {
     public enum ScanFlag
     {

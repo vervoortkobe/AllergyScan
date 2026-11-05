@@ -1,5 +1,5 @@
-using System.ComponentModel.DataAnnotations;
 using AllergyScan.DAL;
+using System.ComponentModel.DataAnnotations;
 
 namespace AllergyScan.BLL.DTO
 {

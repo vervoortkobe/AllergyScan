@@ -1,6 +1,6 @@
-using System.Text.Json;
 using AllergyScan.BLL.Exceptions;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 
 namespace AllergyScan.WebAPI.Middleware
 {

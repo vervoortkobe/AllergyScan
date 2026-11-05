@@ -14,4 +14,8 @@
     <ProjectReference Include="..\AllergyScan.DAL\AllergyScan.DAL.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Using Include="AllergyScan.DAL.Model" />
+  </ItemGroup>
+
 </Project>

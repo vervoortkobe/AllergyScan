@@ -1,6 +1,5 @@
-using System.ComponentModel.DataAnnotations;
 using AllergyScan.DAL;
-using Microsoft.AspNetCore.Http;
+using System.ComponentModel.DataAnnotations;
 
 namespace AllergyScan.WebAPI.Models
 {

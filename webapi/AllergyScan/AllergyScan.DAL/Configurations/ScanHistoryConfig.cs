@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using AllergyScan.DAL.Model;
 
 namespace AllergyScan.DAL.Configurations
 {

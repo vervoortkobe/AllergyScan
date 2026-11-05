@@ -1,4 +1,3 @@
-using System.Text.Json.Serialization;
 using AllergyScan.BLL.Extensions;
 using AllergyScan.DAL.Contexts;
 using AllergyScan.DAL.Extensions;
@@ -8,6 +7,7 @@ using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
+using System.Text.Json.Serialization;
 
 namespace AllergyScan.WebAPI
 {
