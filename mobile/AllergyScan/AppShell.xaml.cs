@@ -1,5 +1,4 @@
 using AllergyScan.Services;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace AllergyScan
 {

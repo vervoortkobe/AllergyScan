@@ -1,5 +1,4 @@
 using System.Text.Json;
-using Microsoft.Maui.Storage;
 
 namespace AllergyScan.Localization
 {

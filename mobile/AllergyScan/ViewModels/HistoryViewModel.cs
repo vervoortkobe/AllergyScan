@@ -1,12 +1,12 @@
-using System.Collections.ObjectModel;
-using System.Windows.Input;
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
-using CommunityToolkit.Mvvm.Messaging;
 using AllergyScan.Localization;
 using AllergyScan.Messages;
 using AllergyScan.Models;
 using AllergyScan.Services;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
+using System.Collections.ObjectModel;
+using System.Windows.Input;
 
 namespace AllergyScan.ViewModels
 {
@@ -110,10 +110,7 @@ namespace AllergyScan.ViewModels
 
         public void Receive(RefreshScansMessage message)
         {
-            MainThread.BeginInvokeOnMainThread(async () =>
-            {
-                await RefreshAsync();
-            });
+            _ = RefreshAsync();
         }
 
         public async Task InitializeAsync()

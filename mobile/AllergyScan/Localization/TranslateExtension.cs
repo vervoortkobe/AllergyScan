@@ -1,5 +1,3 @@
-using Microsoft.Maui.Controls.Xaml;
-
 namespace AllergyScan.Localization
 {
     /// <summary>

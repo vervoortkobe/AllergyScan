@@ -4,79 +4,79 @@ using System.Text.Json;
 
 namespace AllergyScan.Services
 {
-  /// <summary>Manages the available and current languages.</summary>
-  public interface ILanguageDataService
-  {
-    Task<List<Language>> GetAllAsync(CancellationToken cancellationToken = default);
-    Task<Language> GetCurrentAsync(CancellationToken cancellationToken = default);
-    Task<Language> SetCurrentAsync(string code, CancellationToken cancellationToken = default);
-  }
-
-  public class LanguageDataService : ILanguageDataService
-  {
-    private static readonly HttpClient Client = new()
+    /// <summary>Manages the available and current languages.</summary>
+    public interface ILanguageDataService
     {
-      Timeout = TimeSpan.FromSeconds(60)
-    };
-
-    public Task<List<Language>> GetAllAsync(CancellationToken cancellationToken = default)
-    {
-      return GetAsync<List<Language>>("api/languages", cancellationToken);
+        Task<List<Language>> GetAllAsync(CancellationToken cancellationToken = default);
+        Task<Language> GetCurrentAsync(CancellationToken cancellationToken = default);
+        Task<Language> SetCurrentAsync(string code, CancellationToken cancellationToken = default);
     }
 
-    public Task<Language> GetCurrentAsync(CancellationToken cancellationToken = default)
+    public class LanguageDataService : ILanguageDataService
     {
-      return GetAsync<Language>("api/languages/current", cancellationToken);
-    }
+        private static readonly HttpClient Client = new()
+        {
+            Timeout = TimeSpan.FromSeconds(60)
+        };
 
-    public Task<Language> SetCurrentAsync(string code, CancellationToken cancellationToken = default)
-    {
-      var request = new LanguageRequest { Code = code };
-      return PutAsync<LanguageRequest, Language>("api/languages/current", request, cancellationToken);
-    }
+        public Task<List<Language>> GetAllAsync(CancellationToken cancellationToken = default)
+        {
+            return GetAsync<List<Language>>("api/languages", cancellationToken);
+        }
 
-    private static async Task<T> GetAsync<T>(string relativeUrl, CancellationToken cancellationToken)
-    {
-      using var response = await Client.GetAsync(BuildUri(relativeUrl), cancellationToken);
-      await EnsureSuccessAsync(response, cancellationToken);
-      var json = await response.Content.ReadAsStringAsync(cancellationToken);
-      return JsonSerializer.Deserialize<T>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true })!;
-    }
+        public Task<Language> GetCurrentAsync(CancellationToken cancellationToken = default)
+        {
+            return GetAsync<Language>("api/languages/current", cancellationToken);
+        }
 
-    private static async Task<TResponse> PutAsync<TRequest, TResponse>(string relativeUrl, TRequest request, CancellationToken cancellationToken)
-    {
-      using var content = new StringContent(JsonSerializer.Serialize(request), System.Text.Encoding.UTF8, "application/json");
-      using var response = await Client.PutAsync(BuildUri(relativeUrl), content, cancellationToken);
-      await EnsureSuccessAsync(response, cancellationToken);
-      var json = await response.Content.ReadAsStringAsync(cancellationToken);
-      return JsonSerializer.Deserialize<TResponse>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true })!;
-    }
+        public Task<Language> SetCurrentAsync(string code, CancellationToken cancellationToken = default)
+        {
+            var request = new LanguageRequest { Code = code };
+            return PutAsync<LanguageRequest, Language>("api/languages/current", request, cancellationToken);
+        }
 
-    private static Uri BuildUri(string relativeUrl)
-    {
-      var baseUrl = AppConfig.ApiBaseUrl;
-      return new Uri(new Uri(baseUrl), relativeUrl.TrimStart('/'));
-    }
+        private static async Task<T> GetAsync<T>(string relativeUrl, CancellationToken cancellationToken)
+        {
+            using var response = await Client.GetAsync(BuildUri(relativeUrl), cancellationToken);
+            await EnsureSuccessAsync(response, cancellationToken);
+            var json = await response.Content.ReadAsStringAsync(cancellationToken);
+            return JsonSerializer.Deserialize<T>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true })!;
+        }
 
-    private static async Task EnsureSuccessAsync(HttpResponseMessage response, CancellationToken cancellationToken)
-    {
-      if (!response.IsSuccessStatusCode)
-      {
-        var error = await response.Content.ReadFromJsonAsync<ProblemDetails>(cancellationToken);
-        throw new Exception(error?.Detail ?? response.ReasonPhrase);
-      }
-    }
+        private static async Task<TResponse> PutAsync<TRequest, TResponse>(string relativeUrl, TRequest request, CancellationToken cancellationToken)
+        {
+            using var content = new StringContent(JsonSerializer.Serialize(request), System.Text.Encoding.UTF8, "application/json");
+            using var response = await Client.PutAsync(BuildUri(relativeUrl), content, cancellationToken);
+            await EnsureSuccessAsync(response, cancellationToken);
+            var json = await response.Content.ReadAsStringAsync(cancellationToken);
+            return JsonSerializer.Deserialize<TResponse>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true })!;
+        }
 
-    private sealed class LanguageRequest
-    {
-      public string Code { get; set; } = string.Empty;
-    }
+        private static Uri BuildUri(string relativeUrl)
+        {
+            var baseUrl = AppConfig.ApiBaseUrl;
+            return new Uri(new Uri(baseUrl), relativeUrl.TrimStart('/'));
+        }
 
-    private sealed class ProblemDetails
-    {
-      public string? Title { get; set; }
-      public int Status { get; set; }
-      public string? Detail { get; set; }
+        private static async Task EnsureSuccessAsync(HttpResponseMessage response, CancellationToken cancellationToken)
+        {
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadFromJsonAsync<ProblemDetails>(cancellationToken);
+                throw new Exception(error?.Detail ?? response.ReasonPhrase);
+            }
+        }
+
+        private sealed class LanguageRequest
+        {
+            public string Code { get; set; } = string.Empty;
+        }
+
+        private sealed class ProblemDetails
+        {
+            public string? Title { get; set; }
+            public int Status { get; set; }
+            public string? Detail { get; set; }
+        }
     }
-  }
 }

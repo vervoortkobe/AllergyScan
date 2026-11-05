@@ -1,10 +1,10 @@
-using System.Collections.ObjectModel;
-using System.Windows.Input;
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 using AllergyScan.Localization;
 using AllergyScan.Models;
 using AllergyScan.Services;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using System.Collections.ObjectModel;
+using System.Windows.Input;
 
 namespace AllergyScan.ViewModels
 {
@@ -165,7 +165,7 @@ namespace AllergyScan.ViewModels
                 NewAllergyName = string.Empty;
                 SelectedAllergy = allergy;
                 StatusMessage = string.Format(T("Allergies.Added"), LocalizationHelper.AllergenName(allergy.Name));
-                
+
                 // Re-scan history to update flags with the new allergen
                 await historyRescanService.RescanAllHistoryAsync(Allergies);
             }
@@ -209,7 +209,7 @@ namespace AllergyScan.ViewModels
                 Allergies.Add(allergy);
                 OnPropertyChanged(nameof(CountText));
                 StatusMessage = string.Format(T("Allergies.Added"), LocalizationHelper.AllergenName(allergy.Name));
-                
+
                 // Re-scan history to update flags with the new allergen
                 await historyRescanService.RescanAllHistoryAsync(Allergies);
             }
@@ -252,7 +252,7 @@ namespace AllergyScan.ViewModels
                 OnPropertyChanged(nameof(CountText));
                 SelectedAllergy = null;
                 StatusMessage = string.Format(T("Allergies.Removed"), LocalizationHelper.AllergenName(allergy.Name));
-                
+
                 // Re-scan history to update flags with the new allergen list
                 await historyRescanService.RescanAllHistoryAsync(Allergies);
             }
@@ -280,7 +280,7 @@ namespace AllergyScan.ViewModels
                 Allergies.Remove(allergy);
                 OnPropertyChanged(nameof(CountText));
                 StatusMessage = string.Format(T("Allergies.Removed"), LocalizationHelper.AllergenName(allergy.Name));
-                
+
                 // Re-scan history to update flags with the new allergen list
                 await historyRescanService.RescanAllHistoryAsync(Allergies);
             }
@@ -294,14 +294,14 @@ namespace AllergyScan.ViewModels
             }
         }
 
-        public void ToggleFlag(Allergy allergy)
+        public async void ToggleFlag(Allergy allergy)
         {
-            _ = ToggleFlagAsync(allergy);
+            await ToggleFlagAsync(allergy);
         }
 
-        public void RemoveAllergy(Allergy allergy)
+        public async void RemoveAllergy(Allergy allergy)
         {
-            _ = RemoveAllergyAsync(allergy);
+            await RemoveAllergyAsync(allergy);
         }
 
         private async Task ToggleFlagAsync(Allergy? allergy)
@@ -324,7 +324,7 @@ namespace AllergyScan.ViewModels
                     T("Allergies.SeveritySet"),
                     LocalizationHelper.AllergenName(allergy.Name),
                     next.ToSeverityText());
-                
+
                 // Re-scan history to update flags with the new allergen severity
                 await historyRescanService.RescanAllHistoryAsync(Allergies);
             }

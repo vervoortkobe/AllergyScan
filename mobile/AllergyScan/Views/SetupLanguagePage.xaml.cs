@@ -1,5 +1,4 @@
 using AllergyScan.ViewModels;
-using Microsoft.Maui.Controls;
 
 namespace AllergyScan.Views
 {

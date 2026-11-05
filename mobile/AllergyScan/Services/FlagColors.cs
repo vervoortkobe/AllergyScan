@@ -1,5 +1,3 @@
-using Microsoft.Maui.Graphics;
-
 namespace AllergyScan.Services
 {
     /// <summary>

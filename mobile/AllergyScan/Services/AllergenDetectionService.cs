@@ -1,7 +1,7 @@
+using AllergyScan.Models;
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
-using AllergyScan.Models;
 
 namespace AllergyScan.Services
 {
@@ -33,20 +33,20 @@ namespace AllergyScan.Services
     /// </summary>
     public sealed class AllergenDetectionService : IAllergenDetectionService
     {
-        private static readonly string[] MayContainPhrases = new[]
-        {
+        private static readonly string[] MayContainPhrases =
+        [
             "may contain", "may contains", "could contain", "might contain", "may contain traces", "contains traces", "traces of",
             "kan bevatten", "kan sporen bevatten", "bevat sporen", "sporen van", "zou kunnen bevatten",
             "peut contenir", "peut-etre contenir", "traces de",
             "kann enthalten", "kann spuren enthalten", "spuren von", "enthält spuren",
             "puede contener", "puede contener trazas", "trazas de",
             "puo contenere", "potrebbe contenere", "tracce di"
-        };
+        ];
 
-        private static readonly string[] TraceIndicators = new[]
-        {
+        private static readonly string[] TraceIndicators =
+        [
             "traces", "sporen", "tracce", "trazas", "spuren"
-        };
+        ];
 
         public IReadOnlyList<(Allergy Allergy, ScanFlag Flag)> Detect(
             string originalText,
@@ -69,13 +69,13 @@ namespace AllergyScan.Services
                 }
 
                 var searchTerms = AllergenCatalog.GetSearchTerms(allergy.Name)
-                    .Concat(new[]
-                    {
+                    .Concat(
+                    [
                         allergy.TranslationNl,
                         allergy.TranslationFr,
                         allergy.TranslationDe,
                         allergy.TranslationEs
-                    })
+                    ])
                     .Where(t => !string.IsNullOrWhiteSpace(t))
                     .Distinct(StringComparer.OrdinalIgnoreCase)
                     .ToArray();
@@ -219,7 +219,8 @@ namespace AllergyScan.Services
                     {
                         maxFlag = ScanFlag.MayContain;
                     }
-                } else if ((int)ScanFlag.Contains > (int)maxFlag)
+                }
+                else if ((int)ScanFlag.Contains > (int)maxFlag)
                 {
                     maxFlag = ScanFlag.Contains;
                 }

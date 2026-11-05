@@ -1,8 +1,8 @@
 using AllergyScan.Localization;
 using AllergyScan.Models;
+using AllergyScan.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using AllergyScan.Services;
 
 namespace AllergyScan.ViewModels
 {
@@ -115,7 +115,7 @@ namespace AllergyScan.ViewModels
                     ResultTitle = T("Result.AllergenDetected");
                     ResultSubtitle = string.Format(T("Result.ContainsDescription"), allergens);
                     ResultColor = Colors.White;
-                    ResultBgColor = AllergyScan.Services.FlagColors.ContainsBackground;
+                    ResultBgColor = FlagColors.ContainsBackground;
                     ResultIcon = "✕";
                     break;
                 case ScanFlag.MayContain:
@@ -124,8 +124,8 @@ namespace AllergyScan.ViewModels
                     IsSafe = false;
                     ResultTitle = T("Result.MayContain");
                     ResultSubtitle = string.Format(T("Result.MayContainDescription"), allergens);
-                    ResultColor = AllergyScan.Services.FlagColors.TextColor;
-                    ResultBgColor = AllergyScan.Services.FlagColors.MayContainBackground;
+                    ResultColor = FlagColors.TextColor;
+                    ResultBgColor = FlagColors.MayContainBackground;
                     ResultIcon = "!";
                     break;
                 case ScanFlag.MayContainTraces:
@@ -134,8 +134,8 @@ namespace AllergyScan.ViewModels
                     IsSafe = false;
                     ResultTitle = T("Result.MayContainTraces");
                     ResultSubtitle = string.Format(T("Result.MayContainTracesDescription"), allergens);
-                    ResultColor = AllergyScan.Services.FlagColors.TextColor;
-                    ResultBgColor = AllergyScan.Services.FlagColors.MayContainTracesBackground;
+                    ResultColor = FlagColors.TextColor;
+                    ResultBgColor = FlagColors.MayContainTracesBackground;
                     ResultIcon = "!";
                     break;
                 default:
@@ -144,8 +144,8 @@ namespace AllergyScan.ViewModels
                     IsSafe = true;
                     ResultTitle = T("Result.NoAllergens");
                     ResultSubtitle = T("Result.NoneDescription");
-                    ResultColor = AllergyScan.Services.FlagColors.TextColor;
-                    ResultBgColor = AllergyScan.Services.FlagColors.SafeBackground;
+                    ResultColor = FlagColors.TextColor;
+                    ResultBgColor = FlagColors.SafeBackground;
                     ResultIcon = "✓";
                     break;
             }

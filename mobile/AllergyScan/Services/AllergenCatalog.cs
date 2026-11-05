@@ -39,7 +39,7 @@ namespace AllergyScan.Services
                 }
             }
 
-            return new[] { trimmed };
+            return [trimmed];
         }
     }
 }

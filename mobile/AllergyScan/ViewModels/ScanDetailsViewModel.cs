@@ -172,13 +172,13 @@ namespace AllergyScan.ViewModels
 
         public ICommand CancelCommand { get; }
 
-        public void ApplyQueryAttributes(IDictionary<string, object> query)
+        public async void ApplyQueryAttributes(IDictionary<string, object> query)
         {
             if (query.TryGetValue("id", out var value)
                 && int.TryParse(value?.ToString(), out var id))
             {
                 scanId = id;
-                _ = InitializeAsync();
+                await InitializeAsync();
             }
         }
 

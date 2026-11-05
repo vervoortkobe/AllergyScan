@@ -1,5 +1,3 @@
-using Microsoft.Extensions.DependencyInjection;
-
 namespace AllergyScan
 {
     public partial class App : Application
@@ -43,6 +41,7 @@ namespace AllergyScan
                 }
                 catch
                 {
+
                     // The shell is still starting up; the default tab is fine.
                 }
             });

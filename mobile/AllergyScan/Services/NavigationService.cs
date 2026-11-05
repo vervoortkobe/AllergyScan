@@ -1,13 +1,8 @@
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.Maui.Controls;
-using AllergyScan.Views;
-
 namespace AllergyScan.Services
 {
     /// <summary>
     /// Abstraction over the MAUI navigation stack so view models never talk to
-    /// <see cref="Shell"/> directly.
+    /// Shelldirectly.
     /// </summary>
     public interface INavigationService
     {
@@ -31,9 +26,8 @@ namespace AllergyScan.Services
     }
 
     /// <summary>
-    /// Default implementation of <see cref="INavigationService"/>. It resolves
-    /// pages through the <see cref="IServiceProvider"/> and drives the navigation
-    /// stack exposed by <see cref="Shell.Current"/>.
+    /// The INavigationService resolve pages through the IServiceProvider and 
+    /// drives the navigation stack exposed by Shell.Current.
     /// </summary>
     public class NavigationService : INavigationService
     {

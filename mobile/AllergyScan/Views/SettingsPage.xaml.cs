@@ -1,6 +1,5 @@
 using AllergyScan.Localization;
 using AllergyScan.ViewModels;
-using Microsoft.Maui.Controls;
 using Microsoft.Maui.Controls.Shapes;
 
 namespace AllergyScan.Views

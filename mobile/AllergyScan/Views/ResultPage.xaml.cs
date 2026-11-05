@@ -1,7 +1,6 @@
 using AllergyScan.Models;
 using AllergyScan.Services;
 using AllergyScan.ViewModels;
-using Microsoft.Maui.Controls;
 
 namespace AllergyScan.Views
 {

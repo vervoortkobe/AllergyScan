@@ -56,7 +56,7 @@ namespace AllergyScan.Models
             }
         }
 
-        public Color FlagTextColor => AllergyScan.Services.FlagColors.TextColor;
+        public Color FlagTextColor => Services.FlagColors.TextColor;
 
         public string FlagBadge => Flag switch
         {
@@ -68,17 +68,17 @@ namespace AllergyScan.Models
 
         public Color FlagBackgroundColor => Flag switch
         {
-            ScanFlag.Contains => AllergyScan.Services.FlagColors.ContainsBackground,
-            ScanFlag.MayContain => AllergyScan.Services.FlagColors.MayContainBackground,
-            ScanFlag.MayContainTraces => AllergyScan.Services.FlagColors.MayContainTracesBackground,
+            ScanFlag.Contains => Services.FlagColors.ContainsBackground,
+            ScanFlag.MayContain => Services.FlagColors.MayContainBackground,
+            ScanFlag.MayContainTraces => Services.FlagColors.MayContainTracesBackground,
             _ => Color.FromArgb("#F2F2F2")
         };
 
         public Color FlagStrokeColor => Flag switch
         {
-            ScanFlag.Contains => AllergyScan.Services.FlagColors.ContainsBackground,
-            ScanFlag.MayContain => AllergyScan.Services.FlagColors.MayContainBackground,
-            ScanFlag.MayContainTraces => AllergyScan.Services.FlagColors.MayContainTracesBackground,
+            ScanFlag.Contains => Services.FlagColors.ContainsBackground,
+            ScanFlag.MayContain => Services.FlagColors.MayContainBackground,
+            ScanFlag.MayContainTraces => Services.FlagColors.MayContainTracesBackground,
             _ => Color.FromArgb("#ACACAC")
         };
 
@@ -92,7 +92,7 @@ namespace AllergyScan.Models
             get
             {
                 var currentLanguage = LocalizationService.Instance.CurrentLanguageCode;
-                
+
                 // Try to use the translation for the current language
                 string? translation = currentLanguage switch
                 {
@@ -102,12 +102,12 @@ namespace AllergyScan.Models
                     "es" => TranslationEs,
                     _ => null
                 };
-                
+
                 if (!string.IsNullOrWhiteSpace(translation))
                 {
                     return translation;
                 }
-                
+
                 // Fall back to AllergenSuggestions for common allergens
                 return LocalizationHelper.AllergenName(Name);
             }

@@ -1,13 +1,12 @@
-using System.Collections.Generic;
-using System.Windows.Input;
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
-using CommunityToolkit.Mvvm.Messaging;
 using AllergyScan.Localization;
 using AllergyScan.Messages;
 using AllergyScan.Models;
 using AllergyScan.Services;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using SkiaSharp;
+using System.Windows.Input;
 
 namespace AllergyScan.ViewModels
 {
@@ -282,18 +281,18 @@ namespace AllergyScan.ViewModels
 
         public Color FlagColor => Flag switch
         {
-            ScanFlag.Contains => AllergyScan.Services.FlagColors.TextColor,
-            ScanFlag.MayContain => AllergyScan.Services.FlagColors.TextColor,
-            ScanFlag.MayContainTraces => AllergyScan.Services.FlagColors.TextColor,
-            _ => AllergyScan.Services.FlagColors.TextColor
+            ScanFlag.Contains => FlagColors.TextColor,
+            ScanFlag.MayContain => FlagColors.TextColor,
+            ScanFlag.MayContainTraces => FlagColors.TextColor,
+            _ => FlagColors.TextColor
         };
 
         public Color FlagBackgroundColor => Flag switch
         {
-            ScanFlag.Contains => AllergyScan.Services.FlagColors.ContainsBackground,
-            ScanFlag.MayContain => AllergyScan.Services.FlagColors.MayContainBackground,
-            ScanFlag.MayContainTraces => AllergyScan.Services.FlagColors.MayContainTracesBackground,
-            _ => AllergyScan.Services.FlagColors.SafeBackground
+            ScanFlag.Contains => FlagColors.ContainsBackground,
+            ScanFlag.MayContain => FlagColors.MayContainBackground,
+            ScanFlag.MayContainTraces => FlagColors.MayContainTracesBackground,
+            _ => FlagColors.SafeBackground
         };
 
         public string FlagDescription => Flag switch
