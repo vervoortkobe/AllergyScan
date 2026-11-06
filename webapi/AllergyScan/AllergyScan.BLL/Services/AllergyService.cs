@@ -31,6 +31,8 @@ namespace AllergyScan.BLL.Services
 
         public async Task<AllergyDTO> CreateAsync(CreateAllergyRequest request, CancellationToken cancellationToken = default)
         {
+            EnsureFlagIsValid(request.Flag);
+
             var name = NormalizeName(request.Name);
 
             await EnsureNameIsUniqueAsync(name, null, cancellationToken);
@@ -55,6 +57,11 @@ namespace AllergyScan.BLL.Services
 
             var name = NormalizeName(request.Name);
             await EnsureNameIsUniqueAsync(name, id, cancellationToken);
+
+            if (request.Flag is not null)
+            {
+                EnsureFlagIsValid(request.Flag.Value);
+            }
 
             allergy.Name = name;
 
@@ -98,6 +105,15 @@ namespace AllergyScan.BLL.Services
             }
 
             return normalized;
+        }
+
+        private static void EnsureFlagIsValid(ScanFlag flag)
+        {
+            if (flag == ScanFlag.NoAllergen)
+            {
+                throw new BadRequestException(
+                    "An allergy must have a severity of Contains, MayContain or MayContainTraces. Remove the allergy instead of setting it to NoAllergen.");
+            }
         }
 
         private static AllergyDTO Map(Allergy allergy)

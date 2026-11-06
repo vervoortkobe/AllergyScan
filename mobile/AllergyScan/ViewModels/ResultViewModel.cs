@@ -115,7 +115,7 @@ namespace AllergyScan.ViewModels
                     IsSafe = false;
                     ResultTitle = T("Result.AllergenDetected");
                     ResultSubtitle = string.Format(T("Result.ContainsDescription"), allergens);
-                    ResultColor = Colors.White;
+                    ResultColor = FlagColors.TextColor;
                     ResultBgColor = FlagColors.ContainsBackground;
                     ResultIcon = "✕";
                     break;

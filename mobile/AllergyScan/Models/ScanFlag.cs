@@ -15,14 +15,16 @@ namespace AllergyScan.Models
     {
         /// <summary>
         /// Cycles through the three severity levels the user can choose for an allergy:
-        /// may contain traces → may contain → contains → may contain traces.
+        /// contains → may contain → may contain traces → contains.
+        /// "No allergen" is not a valid severity for an allergy row; an allergy that
+        /// no longer applies should be removed instead.
         /// </summary>
         public static ScanFlag NextSeverity(this ScanFlag flag) => flag switch
         {
-            ScanFlag.NoAllergen => ScanFlag.Contains,
             ScanFlag.Contains => ScanFlag.MayContain,
             ScanFlag.MayContain => ScanFlag.MayContainTraces,
-            _ => ScanFlag.NoAllergen
+            ScanFlag.MayContainTraces => ScanFlag.Contains,
+            _ => ScanFlag.Contains
         };
 
         /// <summary>Short user-facing text for an allergy severity.</summary>
