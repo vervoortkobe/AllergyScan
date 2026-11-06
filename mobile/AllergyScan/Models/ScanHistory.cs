@@ -1,4 +1,5 @@
 using AllergyScan.Localization;
+using AllergyScan.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace AllergyScan.Models
@@ -107,14 +108,14 @@ namespace AllergyScan.Models
             _ => LocalizationService.Instance["Flag.None"]
         };
 
-        public Color FlagColor => AllergyScan.Services.FlagColors.TextColor;
+        public Color FlagColor => FlagColors.TextColor;
 
         public Color FlagBackgroundColor => Flag switch
         {
-            ScanFlag.Contains => AllergyScan.Services.FlagColors.ContainsBackground,
-            ScanFlag.MayContain => AllergyScan.Services.FlagColors.MayContainBackground,
-            ScanFlag.MayContainTraces => AllergyScan.Services.FlagColors.MayContainTracesBackground,
-            _ => AllergyScan.Services.FlagColors.SafeBackground
+            ScanFlag.Contains => FlagColors.ContainsBackground,
+            ScanFlag.MayContain => FlagColors.MayContainBackground,
+            ScanFlag.MayContainTraces => FlagColors.MayContainTracesBackground,
+            _ => FlagColors.SafeBackground
         };
 
         public string ScannedAtText => ScannedAt == default
@@ -126,7 +127,11 @@ namespace AllergyScan.Models
             : Text[..120] + "…";
 
         public ImageSource? ImageSource => HasImage && !string.IsNullOrWhiteSpace(ImageUrl)
-            ? ImageSource.FromUri(new Uri(AppConfig.ApiBaseUrl.TrimEnd('/') + ImageUrl))
+            ? new UriImageSource
+            {
+                Uri = new Uri(AppConfig.ApiBaseUrl.TrimEnd('/') + ImageUrl + "?v=" + Id),
+                CachingEnabled = false
+            }
             : null;
     }
 }

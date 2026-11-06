@@ -24,5 +24,6 @@ namespace AllergyScan.Interfaces
 
         Task InitializeAsync();
         void AddSuggestion(string? suggestion);
+        Task ToggleFlagAsync(Allergy? allergy);
     }
 }

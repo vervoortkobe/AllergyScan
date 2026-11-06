@@ -15,47 +15,22 @@
 
             <Label Text="{loc:Translate Allergies.Description}"
                    FontSize="13"
-                   TextColor="{StaticResource Gray500}" />
+                   TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
 
             <Label Text="{loc:Translate Allergies.Common}"
                    FontSize="15"
                    FontAttributes="Bold"
                    Margin="0,8,0,4" />
 
-            <StackLayout Orientation="Horizontal" Spacing="6">
-                <!-- Allergen suggestion buttons will be generated dynamically -->
-                <!-- This is just a placeholder - the actual buttons are created in the code-behind -->
-            </StackLayout>
-
-            <Border StrokeShape="RoundRectangle 12"
-                    StrokeThickness="1"
-                    Padding="8">
-                <Editor Placeholder="{loc:Translate Allergies.Placeholder}"
-                          BackgroundColor="Transparent"
-                          MinimumHeightRequest="40" />
-            </Border>
-
-            <Button Text="{loc:Translate Allergies.Add}"
-                    FontSize="12"
-                    BackgroundColor="{StaticResource Primary}"
-                    TextColor="White"
-                    IsEnabled="{Binding CanAdd}"
-                    Command="{Binding AddCommand}" />
-
             <Label FontSize="13"
-                   TextColor="{StaticResource Gray600}"
+                   TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray300}}"
                    IsVisible="{Binding HasStatusMessage}"
                    Text="{Binding StatusMessage}" />
 
             <Label Text="{Binding CountText}"
                    FontSize="12"
                    FontAttributes="Bold"
-                   TextColor="{StaticResource Gray500}" />
-
-            <VerticalStackLayout>
-                <!-- Allergy items will be dynamically added here -->
-                <!-- This is a placeholder for the list of allergies -->
-            </VerticalStackLayout>
+                   TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />
 
         </VerticalStackLayout>
     </ScrollView>

@@ -34,7 +34,14 @@ namespace AllergyScan.Localization
         private LocalizationService()
         {
             translations = LoadTranslations();
-            CurrentLanguageCode = Normalize(Preferences.Default.Get(LanguagePreferenceKey, DefaultLanguage));
+            try
+            {
+                CurrentLanguageCode = Normalize(Preferences.Default.Get(LanguagePreferenceKey, DefaultLanguage));
+            }
+            catch
+            {
+                CurrentLanguageCode = DefaultLanguage;
+            }
         }
 
         public string CurrentLanguageCode { get; private set; }
@@ -102,27 +109,34 @@ namespace AllergyScan.Localization
 
         private static Dictionary<string, Dictionary<string, string>> LoadTranslations()
         {
-            var assembly = typeof(LocalizationService).Assembly;
-            using var stream = assembly.GetManifestResourceStream("AllergyScan.Localization.translations.json");
+            try
+            {
+                var assembly = typeof(LocalizationService).Assembly;
+                using var stream = assembly.GetManifestResourceStream("AllergyScan.Localization.translations.json");
 
-            if (stream is null)
+                if (stream is null)
+                {
+                    return new Dictionary<string, Dictionary<string, string>>(StringComparer.OrdinalIgnoreCase);
+                }
+
+                using var reader = new StreamReader(stream);
+                var json = reader.ReadToEnd();
+                var parsed = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, string>>>(json)
+                    ?? new Dictionary<string, Dictionary<string, string>>();
+
+                var result = new Dictionary<string, Dictionary<string, string>>(StringComparer.OrdinalIgnoreCase);
+
+                foreach (var (language, values) in parsed)
+                {
+                    result[language] = new Dictionary<string, string>(values, StringComparer.OrdinalIgnoreCase);
+                }
+
+                return result;
+            }
+            catch
             {
                 return new Dictionary<string, Dictionary<string, string>>(StringComparer.OrdinalIgnoreCase);
             }
-
-            using var reader = new StreamReader(stream);
-            var json = reader.ReadToEnd();
-            var parsed = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, string>>>(json)
-                ?? new Dictionary<string, Dictionary<string, string>>();
-
-            var result = new Dictionary<string, Dictionary<string, string>>(StringComparer.OrdinalIgnoreCase);
-
-            foreach (var (language, values) in parsed)
-            {
-                result[language] = new Dictionary<string, string>(values, StringComparer.OrdinalIgnoreCase);
-            }
-
-            return result;
         }
     }
 }

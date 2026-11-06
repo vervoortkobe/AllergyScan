@@ -35,19 +35,11 @@ namespace AllergyScan.Services
 
         public async Task<PickedPhoto?> PickAsync()
         {
-            try
+            var files = await MediaPicker.Default.PickPhotosAsync();
+            var file = files?.FirstOrDefault();
+            if (file is not null)
             {
-                var files = await MediaPicker.Default.PickPhotosAsync();
-                var file = files?.FirstOrDefault();
-                if (file is not null)
-                {
-                    return await LoadPhotoAsync(file);
-                }
-            }
-            catch (Exception)
-            {
-                // Fallback for permissions or unsupported platforms
-                throw;
+                return await LoadPhotoAsync(file);
             }
             return null;
         }

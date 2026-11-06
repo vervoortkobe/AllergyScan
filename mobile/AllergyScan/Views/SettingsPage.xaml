@@ -7,7 +7,6 @@
              x:DataType="viewModels:SettingsViewModel">
 
     <ContentPage.Resources>
-        <AppThemeBinding Light="{StaticResource Primary}" Dark="{StaticResource Primary}" x:Key="Primary" />
         <Color x:Key="Gray500">#6E6E6E</Color>
         <Color x:Key="Gray600">#ACACAC</Color>
     </ContentPage.Resources>
@@ -33,11 +32,11 @@
 
                     <Label FontAttributes="Bold"
                            TextColor="{StaticResource Primary}"
-                           Text="{loc:Translate Settings.Current}" />
+                           Text="{Binding CurrentLanguageText}" />
 
                     <Picker Title="{loc:Translate Settings.ChooseLanguage}"
                             ItemsSource="{Binding Languages}"
-                            ItemDisplayBinding="{Binding ItemDisplayBinding}"
+                            ItemDisplayBinding="{Binding LocalizedDisplayName}"
                             SelectedItem="{Binding SelectedLanguage}" />
 
                     <Button Text="{loc:Translate Settings.Save}"
