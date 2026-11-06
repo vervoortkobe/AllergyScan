@@ -15,6 +15,8 @@ namespace AllergyScan.BLL.Interfaces
 
         Task<ScanHistoryDTO> UpdateAsync(int id, UpdateScanRequest request, CancellationToken cancellationToken = default);
 
+        Task<ScanHistoryDTO> UpdateAllergiesAsync(int id, UpdateScanAllergiesRequest request, CancellationToken cancellationToken = default);
+
         Task<ScanHistoryDTO> UpdateImageAsync(int id, Stream image, string? contentType, string? fileName, CancellationToken cancellationToken = default);
 
         Task DeleteAsync(int id, CancellationToken cancellationToken = default);

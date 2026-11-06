@@ -53,8 +53,18 @@ namespace AllergyScan.BLL.Services
                 ImageFileName = imageFileName,
                 Text = text,
                 Flag = request.Flag,
-                ScannedAt = DateTime.UtcNow
+                ScannedAt = DateTime.UtcNow,
+                UserId = 1
             };
+
+            // A scan can contain multiple allergies. When the caller supplies ids we
+            // use those; otherwise we associate every allergy whose name occurs in
+            // the OCR text so existing app flows keep producing useful data.
+            var allergies = request.AllergyIds is not null
+                ? await ResolveAllergiesAsync(request.AllergyIds, cancellationToken)
+                : await DetectAllergiesAsync(text, cancellationToken);
+
+            ReplaceAssociations(scan, allergies);
 
             _unitOfWork.Scans.Create(scan);
             await _unitOfWork.CommitAsync(cancellationToken);
@@ -82,16 +92,14 @@ namespace AllergyScan.BLL.Services
 
         public async Task<ScanHistoryDTO> GetByIdAsync(int id, CancellationToken cancellationToken = default)
         {
-            var scan = await _unitOfWork.Scans.GetByIdAsync(id, cancellationToken)
-                ?? throw new NotFoundException($"Scan with id {id} was not found.");
+            var scan = await GetScanOrThrowAsync(id, cancellationToken);
 
             return Map(scan);
         }
 
         public async Task<(byte[] Data, string ContentType, string FileName)> GetImageAsync(int id, CancellationToken cancellationToken = default)
         {
-            var scan = await _unitOfWork.Scans.GetByIdAsync(id, cancellationToken)
-                ?? throw new NotFoundException($"Scan with id {id} was not found.");
+            var scan = await GetScanOrThrowAsync(id, cancellationToken);
 
             if (scan.Image is null || scan.Image.Length == 0)
             {
@@ -111,13 +119,12 @@ namespace AllergyScan.BLL.Services
 
         public async Task<ScanHistoryDTO> UpdateAsync(int id, UpdateScanRequest request, CancellationToken cancellationToken = default)
         {
-            if (request.Text is null && request.Flag is null)
+            if (request.Text is null && request.Flag is null && request.AllergyIds is null)
             {
-                throw new BadRequestException("Provide text or a flag to update.");
+                throw new BadRequestException("Provide text, a flag or allergy ids to update.");
             }
 
-            var scan = await _unitOfWork.Scans.GetByIdAsync(id, cancellationToken)
-                ?? throw new NotFoundException($"Scan with id {id} was not found.");
+            var scan = await GetScanOrThrowAsync(id, cancellationToken);
 
             if (request.Text is not null)
             {
@@ -131,7 +138,27 @@ namespace AllergyScan.BLL.Services
                 scan.Flag = request.Flag.Value;
             }
 
-            _unitOfWork.Scans.Update(scan);
+            if (request.AllergyIds is not null)
+            {
+                var allergies = await ResolveAllergiesAsync(request.AllergyIds, cancellationToken);
+                ReplaceAssociations(scan, allergies);
+            }
+
+            await _unitOfWork.CommitAsync(cancellationToken);
+
+            return Map(scan);
+        }
+
+        public async Task<ScanHistoryDTO> UpdateAllergiesAsync(
+            int id,
+            UpdateScanAllergiesRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            var scan = await GetScanOrThrowAsync(id, cancellationToken);
+            var allergies = await ResolveAllergiesAsync(request.AllergyIds, cancellationToken);
+
+            ReplaceAssociations(scan, allergies);
+
             await _unitOfWork.CommitAsync(cancellationToken);
 
             return Map(scan);
@@ -139,8 +166,7 @@ namespace AllergyScan.BLL.Services
 
         public async Task<ScanHistoryDTO> UpdateImageAsync(int id, Stream image, string? contentType, string? fileName, CancellationToken cancellationToken = default)
         {
-            var scan = await _unitOfWork.Scans.GetByIdAsync(id, cancellationToken)
-                ?? throw new NotFoundException($"Scan with id {id} was not found.");
+            var scan = await GetScanOrThrowAsync(id, cancellationToken);
 
             var (imageBytes, normalizedContentType) = await ReadImageAsync(image, contentType, fileName, cancellationToken);
 
@@ -148,7 +174,6 @@ namespace AllergyScan.BLL.Services
             scan.ImageContentType = normalizedContentType;
             scan.ImageFileName = SanitizeFileName(fileName);
 
-            _unitOfWork.Scans.Update(scan);
             await _unitOfWork.CommitAsync(cancellationToken);
 
             return Map(scan);
@@ -156,8 +181,7 @@ namespace AllergyScan.BLL.Services
 
         public async Task DeleteAsync(int id, CancellationToken cancellationToken = default)
         {
-            var scan = await _unitOfWork.Scans.GetByIdAsync(id, cancellationToken)
-                ?? throw new NotFoundException($"Scan with id {id} was not found.");
+            var scan = await GetScanOrThrowAsync(id, cancellationToken);
 
             _unitOfWork.Scans.Delete(scan);
             await _unitOfWork.CommitAsync(cancellationToken);
@@ -166,6 +190,91 @@ namespace AllergyScan.BLL.Services
         public Task DeleteAllAsync(CancellationToken cancellationToken = default)
         {
             return _unitOfWork.Scans.DeleteAllAsync(cancellationToken);
+        }
+
+        private async Task<ScanHistory> GetScanOrThrowAsync(int id, CancellationToken cancellationToken)
+        {
+            return await _unitOfWork.Scans.GetByIdAsync(id, cancellationToken)
+                ?? throw new NotFoundException($"Scan with id {id} was not found.");
+        }
+
+        private async Task<List<Allergy>> ResolveAllergiesAsync(
+            IReadOnlyList<int> allergyIds,
+            CancellationToken cancellationToken)
+        {
+            var distinctIds = allergyIds.Distinct().ToList();
+
+            if (distinctIds.Count == 0)
+            {
+                return [];
+            }
+
+            var allergies = await _unitOfWork.Allergies.GetByIdsAsync(distinctIds, cancellationToken);
+
+            if (allergies.Count != distinctIds.Count)
+            {
+                var missing = distinctIds.Except(allergies.Select(a => a.Id));
+                throw new BadRequestException(
+                    $"Unknown allergy id(s): {string.Join(", ", missing)}.");
+            }
+
+            return allergies;
+        }
+
+        private async Task<List<Allergy>> DetectAllergiesAsync(string text, CancellationToken cancellationToken)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return [];
+            }
+
+            var allAllergies = await _unitOfWork.Allergies.GetAllAsync(cancellationToken);
+            var matchedIds = allAllergies
+                .Where(a => text.Contains(a.Name, StringComparison.OrdinalIgnoreCase))
+                .Select(a => a.Id)
+                .ToList();
+
+            if (matchedIds.Count == 0)
+            {
+                return [];
+            }
+
+            return await _unitOfWork.Allergies.GetByIdsAsync(matchedIds, cancellationToken);
+        }
+
+        private static void ReplaceAssociations(ScanHistory scan, IReadOnlyList<Allergy> allergies)
+        {
+            var targetIds = allergies.Select(a => a.Id).ToHashSet();
+
+            // Remove associations that are no longer part of the scan.
+            foreach (var existing in scan.ScanAllergies.ToList())
+            {
+                if (!targetIds.Contains(existing.AllergyId))
+                {
+                    scan.ScanAllergies.Remove(existing);
+                }
+            }
+
+            // Add associations that are new for this scan.
+            foreach (var allergy in allergies)
+            {
+                if (scan.ScanAllergies.All(sa => sa.AllergyId != allergy.Id))
+                {
+                    scan.ScanAllergies.Add(new ScanAllergy
+                    {
+                        AllergyId = allergy.Id,
+                        Allergy = allergy,
+                        DetectionFlag = scan.Flag,
+                        UserId = scan.UserId
+                    });
+                }
+            }
+
+            // Keep the per-allergen detection severity in sync with the scan flag.
+            foreach (var association in scan.ScanAllergies)
+            {
+                association.DetectionFlag = scan.Flag;
+            }
         }
 
         private void EnsureTextIsValid(string text)
@@ -271,13 +380,25 @@ namespace AllergyScan.BLL.Services
             // SQLite stores DateTime as text and loses the Kind, so restore UTC for the API.
             var scannedAt = DateTime.SpecifyKind(scan.ScannedAt, DateTimeKind.Utc);
 
+            var allergies = scan.ScanAllergies
+                .Where(sa => sa.Allergy is not null)
+                .Select(sa => new ScanAllergyDTO(
+                    sa.AllergyId,
+                    sa.Allergy.Name,
+                    sa.Allergy.Flag,
+                    sa.DetectionFlag,
+                    sa.Notes))
+                .OrderBy(a => a.Name)
+                .ToList();
+
             return new ScanHistoryDTO(
                 scan.Id,
                 scan.Text,
                 scan.Flag,
                 scannedAt,
                 hasImage,
-                hasImage ? $"/api/scans/{scan.Id}/image" : null);
+                hasImage ? $"/api/scans/{scan.Id}/image" : null,
+                allergies);
         }
     }
 }

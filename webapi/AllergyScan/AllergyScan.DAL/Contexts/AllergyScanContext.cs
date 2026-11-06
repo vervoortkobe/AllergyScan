@@ -12,6 +12,8 @@ namespace AllergyScan.DAL.Contexts
 
         public DbSet<ScanHistory> Scans => Set<ScanHistory>();
 
+        public DbSet<ScanAllergy> ScanAllergies => Set<ScanAllergy>();
+
         public AllergyScanContext(DbContextOptions<AllergyScanContext> options) : base(options)
         {
         }

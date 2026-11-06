@@ -65,6 +65,12 @@
                                            LineBreakMode="TailTruncation"
                                            MaxLines="3" />
 
+                                    <Label Text="{Binding AllergiesText, StringFormat='Allergens: {0}'}"
+                                           FontSize="12"
+                                           FontAttributes="Bold"
+                                           IsVisible="{Binding HasAllergies}"
+                                           TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource Primary}}" />
+
                                     <Label Text="{Binding ScannedAtText}"
                                            FontSize="11"
                                            TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray300}}" />

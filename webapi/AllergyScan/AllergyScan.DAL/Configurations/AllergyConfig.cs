@@ -10,6 +10,10 @@ namespace AllergyScan.DAL.Configurations
         {
             builder.HasKey(a => a.Id);
 
+            builder.Property(a => a.UserId)
+                .IsRequired()
+                .HasDefaultValue(1); // Single-user app: always user 1
+
             builder.Property(a => a.Name)
                 .IsRequired()
                 .HasMaxLength(100)
@@ -20,7 +24,11 @@ namespace AllergyScan.DAL.Configurations
                 .HasDefaultValue(ScanFlag.Contains)
                 .HasSentinel(ScanFlag.Contains);
 
-            builder.HasIndex(a => a.Name).IsUnique();
+            builder.HasIndex(a => a.UserId);
+            // Allergy names are unique per user. With the implicit single-user
+            // model every row has UserId = 1, so this behaves like a global
+            // unique name while staying ready for multi-user support.
+            builder.HasIndex(a => new { a.UserId, a.Name }).IsUnique();
         }
     }
 }

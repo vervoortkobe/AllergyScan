@@ -17,34 +17,6 @@ namespace AllergyScan.DAL.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.13");
 
-            modelBuilder.Entity("AllergyScan.DAL.Allergy", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("Flag")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
-                        .HasDefaultValue(1);
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("TEXT")
-                        .UseCollation("NOCASE");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Name")
-                        .IsUnique();
-
-                    b.ToTable("Allergies");
-                });
-
             modelBuilder.Entity("AllergyScan.DAL.Language", b =>
                 {
                     b.Property<int>("Id")
@@ -101,7 +73,74 @@ namespace AllergyScan.DAL.Migrations
                         });
                 });
 
-            modelBuilder.Entity("AllergyScan.DAL.ScanHistory", b =>
+            modelBuilder.Entity("AllergyScan.DAL.Model.Allergy", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Flag")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(1);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT")
+                        .UseCollation("NOCASE");
+
+                    b.Property<int>("UserId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(1);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("UserId", "Name")
+                        .IsUnique();
+
+                    b.ToTable("Allergies");
+                });
+
+            modelBuilder.Entity("AllergyScan.DAL.Model.ScanAllergy", b =>
+                {
+                    b.Property<int>("ScanId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("AllergyId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("DetectionFlag")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("UserId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(1);
+
+                    b.HasKey("ScanId", "AllergyId");
+
+                    b.HasIndex("AllergyId");
+
+                    b.HasIndex("ScanId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("ScanId", "AllergyId");
+
+                    b.ToTable("ScanAllergies");
+                });
+
+            modelBuilder.Entity("AllergyScan.DAL.Model.ScanHistory", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -128,9 +167,18 @@ namespace AllergyScan.DAL.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("UserId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(1);
+
                     b.HasKey("Id");
 
                     b.HasIndex("ScannedAt");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("UserId", "ScannedAt");
 
                     b.ToTable("Scans");
                 });
@@ -157,6 +205,25 @@ namespace AllergyScan.DAL.Migrations
                         });
                 });
 
+            modelBuilder.Entity("AllergyScan.DAL.Model.ScanAllergy", b =>
+                {
+                    b.HasOne("AllergyScan.DAL.Model.Allergy", "Allergy")
+                        .WithMany("ScanAllergies")
+                        .HasForeignKey("AllergyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AllergyScan.DAL.Model.ScanHistory", "Scan")
+                        .WithMany("ScanAllergies")
+                        .HasForeignKey("ScanId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Allergy");
+
+                    b.Navigation("Scan");
+                });
+
             modelBuilder.Entity("AllergyScan.DAL.UserSettings", b =>
                 {
                     b.HasOne("AllergyScan.DAL.Language", "Language")
@@ -171,6 +238,16 @@ namespace AllergyScan.DAL.Migrations
             modelBuilder.Entity("AllergyScan.DAL.Language", b =>
                 {
                     b.Navigation("UserSettings");
+                });
+
+            modelBuilder.Entity("AllergyScan.DAL.Model.Allergy", b =>
+                {
+                    b.Navigation("ScanAllergies");
+                });
+
+            modelBuilder.Entity("AllergyScan.DAL.Model.ScanHistory", b =>
+                {
+                    b.Navigation("ScanAllergies");
                 });
 #pragma warning restore 612, 618
         }

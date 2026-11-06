@@ -2,14 +2,6 @@ using System;
 
 namespace AllergyScan.DAL.Model
 {
-    public enum ScanFlag
-    {
-        NoAllergen = 0,
-        Contains = 1,
-        MayContain = 2,
-        MayContainTraces = 3
-    }
-
     /// <summary>Represents a stored scan in the database.</summary>
     public class ScanHistory
     {
@@ -29,5 +21,11 @@ namespace AllergyScan.DAL.Model
         public ScanFlag Flag { get; set; }
 
         public DateTime ScannedAt { get; set; } = DateTime.UtcNow;
+
+        /// <summary>User ID for implicit single-user model. Always set to 1 in single-user app.</summary>
+        public int UserId { get; set; } = 1;
+
+        /// <summary>Collection of allergies detected in this scan.</summary>
+        public ICollection<ScanAllergy> ScanAllergies { get; set; } = new List<ScanAllergy>();
     }
 }

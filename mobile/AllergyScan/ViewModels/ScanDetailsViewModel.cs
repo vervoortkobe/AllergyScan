@@ -212,20 +212,30 @@ namespace AllergyScan.ViewModels
                 SelectedFlag = loaded.Flag;
                 StatusMessage = string.Empty;
 
-                try
+                if (loaded.Allergies.Count > 0)
                 {
-                    var allergies = await allergyDataService.GetAllAsync();
-                    var contains = detectionService.Detect(loaded.Text, string.Empty, allergies);
-                    var mayContain = detectionService.DetectMayContain(loaded.Text, string.Empty, allergies);
-                    var traces = detectionService.DetectMayContainTraces(loaded.Text, string.Empty, allergies);
-                    var names = contains.Concat(mayContain).Concat(traces)
-                        .Select(m => m.Allergy.Name)
-                        .Distinct(StringComparer.OrdinalIgnoreCase);
-                    DetectedAllergens = string.Join(", ", names);
+                    // The API now stores the many-to-many scan/allergy relations.
+                    DetectedAllergens = loaded.AllergiesText;
                 }
-                catch
+                else
                 {
-                    DetectedAllergens = string.Empty;
+                    // Older scans have no stored relations yet, so fall back to
+                    // recalculating the matches from the ingredient text.
+                    try
+                    {
+                        var allergies = await allergyDataService.GetAllAsync();
+                        var contains = detectionService.Detect(loaded.Text, string.Empty, allergies);
+                        var mayContain = detectionService.DetectMayContain(loaded.Text, string.Empty, allergies);
+                        var traces = detectionService.DetectMayContainTraces(loaded.Text, string.Empty, allergies);
+                        var names = contains.Concat(mayContain).Concat(traces)
+                            .Select(m => m.Allergy.Name)
+                            .Distinct(StringComparer.OrdinalIgnoreCase);
+                        DetectedAllergens = string.Join(", ", names);
+                    }
+                    catch
+                    {
+                        DetectedAllergens = string.Empty;
+                    }
                 }
             }
             catch (Exception exception)

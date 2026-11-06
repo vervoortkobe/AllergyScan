@@ -4,6 +4,8 @@ namespace AllergyScan.DAL.Repositories
     {
         Task<List<Allergy>> GetAllAsync(CancellationToken cancellationToken = default);
 
+        Task<List<Allergy>> GetByIdsAsync(IEnumerable<int> ids, CancellationToken cancellationToken = default);
+
         Task<Allergy?> GetByIdAsync(int id, CancellationToken cancellationToken = default);
 
         void Create(Allergy allergy);

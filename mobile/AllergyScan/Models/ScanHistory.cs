@@ -73,6 +73,29 @@ namespace AllergyScan.Models
             }
         }
 
+        private List<ScanAllergy> allergies = new();
+
+        /// <summary>
+        /// Allergens detected in this scan. Populated from the many-to-many
+        /// ScanAllergies table by the API.
+        /// </summary>
+        public List<ScanAllergy> Allergies
+        {
+            get => allergies;
+            set
+            {
+                if (SetProperty(ref allergies, value ?? new List<ScanAllergy>()))
+                {
+                    OnPropertyChanged(nameof(HasAllergies));
+                    OnPropertyChanged(nameof(AllergiesText));
+                }
+            }
+        }
+
+        public bool HasAllergies => Allergies.Count > 0;
+
+        public string AllergiesText => string.Join(", ", Allergies.Select(a => a.Name));
+
         /// <summary>Relative URL returned by the API, for example /api/scans/1/image.</summary>
         public string? ImageUrl
         {

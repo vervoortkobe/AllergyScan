@@ -20,6 +20,20 @@ namespace AllergyScan.DAL.Repositories
                 .ToListAsync(cancellationToken);
         }
 
+        public async Task<List<Allergy>> GetByIdsAsync(IEnumerable<int> ids, CancellationToken cancellationToken = default)
+        {
+            var idList = ids.Distinct().ToList();
+
+            if (idList.Count == 0)
+            {
+                return [];
+            }
+
+            return await _context.Allergies
+                .Where(a => idList.Contains(a.Id))
+                .ToListAsync(cancellationToken);
+        }
+
         public Task<Allergy?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
         {
             return _context.Allergies.FirstOrDefaultAsync(a => a.Id == id, cancellationToken);

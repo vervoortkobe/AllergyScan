@@ -38,7 +38,8 @@ namespace AllergyScan.WebAPI.Controllers
                 form.Image.ContentType,
                 form.Image.FileName,
                 form.Text,
-                form.Flag!.Value);
+                form.Flag!.Value,
+                form.AllergyIds);
 
             var result = await _scanService.CreateAsync(request, cancellationToken);
             return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
@@ -77,6 +78,16 @@ namespace AllergyScan.WebAPI.Controllers
             CancellationToken cancellationToken)
         {
             return Ok(await _scanService.UpdateAsync(id, request, cancellationToken));
+        }
+
+        /// <summary>Replaces the list of allergies detected in a scan.</summary>
+        [HttpPut("{id:int}/allergies")]
+        public async Task<ActionResult<ScanHistoryDTO>> UpdateAllergies(
+            int id,
+            [FromBody] UpdateScanAllergiesRequest request,
+            CancellationToken cancellationToken)
+        {
+            return Ok(await _scanService.UpdateAllergiesAsync(id, request, cancellationToken));
         }
 
         /// <summary>Replaces the image of a scan.</summary>

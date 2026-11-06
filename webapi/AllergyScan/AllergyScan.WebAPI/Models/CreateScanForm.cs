@@ -17,5 +17,11 @@ namespace AllergyScan.WebAPI.Models
         /// <summary>Result of the app's allergen check.</summary>
         [Required]
         public ScanFlag? Flag { get; set; }
+
+        /// <summary>
+        /// Optional explicit list of allergy ids detected in this scan. When omitted
+        /// the API derives the associations from the ingredient text.
+        /// </summary>
+        public int[]? AllergyIds { get; set; }
     }
 }
