@@ -1,4 +1,5 @@
 using AllergyScan.Localization;
+using AllergyScan.Interfaces;
 using AllergyScan.Messages;
 using AllergyScan.Models;
 using AllergyScan.Services;
@@ -9,7 +10,7 @@ using CommunityToolkit.Mvvm.Messaging;
 namespace AllergyScan.ViewModels
 {
     /// <summary>View model for the language setup page.</summary>
-    public class SetupLanguageViewModel : ObservableObject
+    public class SetupLanguageViewModel : ObservableObject, ISetupLanguageViewModel
     {
         private readonly ILanguageDataService languageDataService;
         private readonly IDialogService dialogService;

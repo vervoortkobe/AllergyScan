@@ -1,3 +1,4 @@
+using AllergyScan.Interfaces;
 using AllergyScan.Models;
 using AllergyScan.Services;
 using AllergyScan.ViewModels;
@@ -9,7 +10,7 @@ namespace AllergyScan.Views
     [QueryProperty(nameof(ScanId), "scanId")]
     public partial class ResultPage : ContentPage
     {
-        private readonly ResultViewModel viewModel;
+        private readonly IResultViewModel viewModel;
         private readonly INavigationService navigationService;
         private bool resultApplied;
 
@@ -17,7 +18,7 @@ namespace AllergyScan.Views
         public string Allergens { get; set; } = string.Empty;
         public string ScanId { get; set; } = string.Empty;
 
-        public ResultPage(ResultViewModel viewModel, INavigationService navigationService)
+        public ResultPage(IResultViewModel viewModel, INavigationService navigationService)
         {
             InitializeComponent();
             this.viewModel = viewModel;

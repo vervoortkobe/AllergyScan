@@ -1,7 +1,8 @@
+using AllergyScan.Interfaces;
 using AllergyScan.Localization;
 using AllergyScan.Services;
 using AllergyScan.ViewModels;
-using Microsoft.Extensions.Configuration;
+using AllergyScan.Views;
 
 namespace AllergyScan
 {
@@ -19,7 +20,7 @@ namespace AllergyScan
                 });
 
             // Configuration comes from Properties/appsettings.json (embedded in the assembly).
-            builder.Services.AddSingleton<IConfiguration>(AppConfig.Configuration);
+            builder.Services.AddSingleton(AppConfig.Configuration);
 
             // Shell
             builder.Services.AddTransient<AppShell>();
@@ -39,25 +40,25 @@ namespace AllergyScan
             builder.Services.AddSingleton<IDialogService, DialogService>();
             builder.Services.AddSingleton<INavigationService, NavigationService>();
 
-            // View Models
-            builder.Services.AddTransient<AllergiesViewModel>();
-            builder.Services.AddTransient<HistoryViewModel>();
-            builder.Services.AddTransient<SettingsViewModel>();
-            builder.Services.AddTransient<ScanViewModel>();
-            builder.Services.AddTransient<ScanDetailsViewModel>();
-            builder.Services.AddTransient<SetupLanguageViewModel>();
-            builder.Services.AddTransient<SetupAllergiesViewModel>();
-            builder.Services.AddTransient<ResultViewModel>();
+            // ViewModels
+            builder.Services.AddTransient<IAllergiesViewModel, AllergiesViewModel>();
+            builder.Services.AddTransient<IHistoryViewModel, HistoryViewModel>();
+            builder.Services.AddTransient<ISettingsViewModel, SettingsViewModel>();
+            builder.Services.AddTransient<IScanViewModel, ScanViewModel>();
+            builder.Services.AddTransient<IScanDetailsViewModel, ScanDetailsViewModel>();
+            builder.Services.AddTransient<ISetupLanguageViewModel, SetupLanguageViewModel>();
+            builder.Services.AddTransient<ISetupAllergiesViewModel, SetupAllergiesViewModel>();
+            builder.Services.AddTransient<IResultViewModel, ResultViewModel>();
 
-            // Pages
-            builder.Services.AddTransient<Views.AllergiesPage>();
-            builder.Services.AddTransient<Views.HistoryPage>();
-            builder.Services.AddTransient<Views.SettingsPage>();
-            builder.Services.AddTransient<Views.ScanPage>();
-            builder.Services.AddTransient<Views.ScanDetailsPage>();
-            builder.Services.AddTransient<Views.SetupLanguagePage>();
-            builder.Services.AddTransient<Views.SetupAllergiesPage>();
-            builder.Services.AddTransient<Views.ResultPage>();
+            // Views
+            builder.Services.AddTransient<AllergiesPage>();
+            builder.Services.AddTransient<HistoryPage>();
+            builder.Services.AddTransient<SettingsPage>();
+            builder.Services.AddTransient<ScanPage>();
+            builder.Services.AddTransient<ScanDetailsPage>();
+            builder.Services.AddTransient<SetupLanguagePage>();
+            builder.Services.AddTransient<SetupAllergiesPage>();
+            builder.Services.AddTransient<ResultPage>();
 
             return builder.Build();
         }

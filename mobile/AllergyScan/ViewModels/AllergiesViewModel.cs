@@ -1,4 +1,5 @@
 using AllergyScan.Localization;
+using AllergyScan.Interfaces;
 using AllergyScan.Models;
 using AllergyScan.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -9,7 +10,7 @@ using System.Windows.Input;
 namespace AllergyScan.ViewModels
 {
     /// <summary>View model for managing the allergy profile.</summary>
-    public class AllergiesViewModel : ObservableObject
+    public class AllergiesViewModel : ObservableObject, IAllergiesViewModel
     {
         private readonly IAllergyDataService allergyDataService;
         private readonly ITranslationService translationService;

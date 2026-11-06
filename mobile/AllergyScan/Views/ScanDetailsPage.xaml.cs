@@ -1,12 +1,13 @@
+using AllergyScan.Interfaces;
 using AllergyScan.ViewModels;
 
 namespace AllergyScan.Views
 {
     public partial class ScanDetailsPage : ContentPage, IQueryAttributable
     {
-        private readonly ScanDetailsViewModel viewModel;
+        private readonly IScanDetailsViewModel viewModel;
 
-        public ScanDetailsPage(ScanDetailsViewModel viewModel)
+        public ScanDetailsPage(IScanDetailsViewModel viewModel)
         {
             InitializeComponent();
             BindingContext = viewModel;

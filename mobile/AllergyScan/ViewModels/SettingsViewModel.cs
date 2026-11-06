@@ -1,4 +1,5 @@
 using AllergyScan.Localization;
+using AllergyScan.Interfaces;
 using AllergyScan.Messages;
 using AllergyScan.Models;
 using AllergyScan.Services;
@@ -10,7 +11,7 @@ using System.Windows.Input;
 namespace AllergyScan.ViewModels
 {
     /// <summary>View model for the settings page.</summary>
-    public class SettingsViewModel : ObservableObject
+    public class SettingsViewModel : ObservableObject, ISettingsViewModel
     {
         private readonly ILanguageDataService languageDataService;
         private readonly ILocalizationService localizationService;

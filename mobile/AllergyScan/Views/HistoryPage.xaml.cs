@@ -1,12 +1,13 @@
+using AllergyScan.Interfaces;
 using AllergyScan.ViewModels;
 
 namespace AllergyScan.Views
 {
     public partial class HistoryPage : ContentPage
     {
-        private readonly HistoryViewModel viewModel;
+        private readonly IHistoryViewModel viewModel;
 
-        public HistoryPage(HistoryViewModel viewModel)
+        public HistoryPage(IHistoryViewModel viewModel)
         {
             InitializeComponent();
             BindingContext = viewModel;

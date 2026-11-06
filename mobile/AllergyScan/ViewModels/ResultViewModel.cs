@@ -1,3 +1,4 @@
+using AllergyScan.Interfaces;
 using AllergyScan.Localization;
 using AllergyScan.Models;
 using AllergyScan.Services;
@@ -7,7 +8,7 @@ using CommunityToolkit.Mvvm.Input;
 namespace AllergyScan.ViewModels
 {
     /// <summary>View model for the result page.</summary>
-    public class ResultViewModel : ObservableObject
+    public class ResultViewModel : ObservableObject, IResultViewModel
     {
         private int scanId;
         private ScanFlag flag;

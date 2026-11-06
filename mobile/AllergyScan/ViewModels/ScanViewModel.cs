@@ -1,4 +1,5 @@
 using AllergyScan.Localization;
+using AllergyScan.Interfaces;
 using AllergyScan.Messages;
 using AllergyScan.Models;
 using AllergyScan.Services;
@@ -11,7 +12,7 @@ using System.Windows.Input;
 namespace AllergyScan.ViewModels
 {
     /// <summary>View model for the scan page: captures a photo, runs OCR and allergen detection, and saves the result.</summary>
-    public class ScanViewModel : ObservableRecipient, IRecipient<LanguageChangedMessage>
+    public class ScanViewModel : ObservableRecipient, IRecipient<LanguageChangedMessage>, IScanViewModel
     {
         private readonly IOCRService ocrService;
         private readonly ITranslationService translationService;

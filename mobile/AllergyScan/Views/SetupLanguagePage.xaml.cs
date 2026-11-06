@@ -1,12 +1,13 @@
+using AllergyScan.Interfaces;
 using AllergyScan.ViewModels;
 
 namespace AllergyScan.Views
 {
     public partial class SetupLanguagePage : ContentPage
     {
-        private readonly SetupLanguageViewModel viewModel;
+        private readonly ISetupLanguageViewModel viewModel;
 
-        public SetupLanguagePage(SetupLanguageViewModel viewModel)
+        public SetupLanguagePage(ISetupLanguageViewModel viewModel)
         {
             this.viewModel = viewModel;
             BindingContext = viewModel;

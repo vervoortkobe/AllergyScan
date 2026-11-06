@@ -1,12 +1,13 @@
+using AllergyScan.Interfaces;
 using AllergyScan.ViewModels;
 
 namespace AllergyScan.Views
 {
     public partial class SetupAllergiesPage : ContentPage
     {
-        private readonly SetupAllergiesViewModel viewModel;
+        private readonly ISetupAllergiesViewModel viewModel;
 
-        public SetupAllergiesPage(SetupAllergiesViewModel viewModel)
+        public SetupAllergiesPage(ISetupAllergiesViewModel viewModel)
         {
             this.viewModel = viewModel;
             BindingContext = viewModel;

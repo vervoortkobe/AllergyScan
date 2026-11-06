@@ -1,4 +1,5 @@
 using AllergyScan.Localization;
+using AllergyScan.Interfaces;
 using AllergyScan.Messages;
 using AllergyScan.Models;
 using AllergyScan.Services;
@@ -11,7 +12,7 @@ using System.Windows.Input;
 namespace AllergyScan.ViewModels
 {
     /// <summary>View model for the scan history page.</summary>
-    public class HistoryViewModel : ObservableRecipient, IRecipient<RefreshScansMessage>
+    public class HistoryViewModel : ObservableRecipient, IRecipient<RefreshScansMessage>, IHistoryViewModel
     {
         private readonly IScanDataService scanDataService;
         private readonly IDialogService dialogService;

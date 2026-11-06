@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using AllergyScan.Localization;
+using AllergyScan.Interfaces;
 using AllergyScan.Messages;
 using AllergyScan.Models;
 using AllergyScan.Services;
@@ -10,7 +11,7 @@ using AllergyScan.Services;
 namespace AllergyScan.ViewModels
 {
     /// <summary>View model for viewing and editing a single scan.</summary>
-    public class ScanDetailsViewModel : ObservableObject
+    public class ScanDetailsViewModel : ObservableObject, IScanDetailsViewModel
     {
         private readonly IScanDataService scanDataService;
         private readonly IAllergyDataService allergyDataService;
